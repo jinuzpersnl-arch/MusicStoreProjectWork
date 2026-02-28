@@ -1,0 +1,11 @@
+{
+  "albums": [
+    {
+      "title": "Your Album Name",
+      "artist": "Your Artist Name",
+      "year": 2026,
+      "tracks": 10,
+      "image": "images/albums/default-album.svg"
+    }
+  ]
+}

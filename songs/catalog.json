@@ -1,0 +1,25 @@
+{
+  "songs": [
+    {
+      "id": "local-1",
+      "title": "Replace With Your Song",
+      "artist": "Your Artist Name",
+      "album": "Your Album",
+      "duration": "3:20",
+      "file": "albums/1-tamil/your-song-file.mp3",
+      "image": "images/albums/default-album.svg",
+      "artistImage": "images/artists/default-artist.svg",
+      "albumImage": "images/albums/default-album.svg"
+    }
+  ],
+  "podcasts": [
+    {
+      "id": "pod-1",
+      "title": "Replace Podcast Episode",
+      "host": "Host Name",
+      "episode": "Episode 1",
+      "file": "podcasts/1-tamil/podcast-episode-1.mp3",
+      "image": "images/podcasts/default-podcast.svg"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "podcasts": [
+    {
+      "id": "pod-1",
+      "title": "Your Podcast",
+      "host": "Host Name",
+      "episode": "Episode 1",
+      "file": "podcasts/1-tamil/podcast-episode-1.mp3",
+      "image": "images/podcasts/default-podcast.svg"
+    }
+  ]
+}

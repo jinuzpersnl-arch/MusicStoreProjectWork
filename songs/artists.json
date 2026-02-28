@@ -1,0 +1,10 @@
+{
+  "artists": [
+    {
+      "name": "Your Artist Name",
+      "genre": "Pop",
+      "monthlyListeners": "100K",
+      "image": "images/artists/default-artist.svg"
+    }
+  ]
+}

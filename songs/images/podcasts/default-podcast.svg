@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#311b1b"/>
+      <stop offset="100%" stop-color="#243d22"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="1200" fill="url(#g)"/>
+  <circle cx="600" cy="600" r="350" fill="#f4a259" opacity="0.18"/>
+  <rect x="500" y="350" width="200" height="360" rx="100" fill="#79f2df" opacity="0.42"/>
+  <rect x="420" y="760" width="360" height="80" rx="40" fill="#ecf6f8" opacity="0.25"/>
+  <text x="600" y="1040" text-anchor="middle" fill="#ecf6f8" font-family="Manrope, Arial, sans-serif" font-size="95" font-weight="700">PODCAST</text>
+</svg>
