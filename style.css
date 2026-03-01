@@ -577,6 +577,84 @@ body[data-page="home"] .player-panel {
   object-fit: cover;
   margin-bottom: 0.62rem;
   background: #111d32;
+  display: block;
+}
+
+/* wrapper for card image with hover overlay */
+.card-media-wrap {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  margin-bottom: 0.62rem;
+}
+
+.card-playable:not(:hover) .card-media {
+  transition: transform 0.3s ease;
+}
+
+.card-playable:hover .card-media {
+  transform: scale(1.05);
+}
+
+/* hover overlay for play/edit buttons like Spotify */
+.card-hover-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.2rem;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.28s ease;
+  border-radius: 10px;
+}
+
+.card-playable:hover .card-hover-overlay {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.play-large-btn,
+.edit-large-btn {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: none;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.play-large-btn {
+  background: linear-gradient(135deg, #48b8ff, #8ef0d3);
+  color: #031b2b;
+  box-shadow: 0 8px 24px rgba(72, 184, 255, 0.5);
+}
+
+.play-large-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 12px 32px rgba(72, 184, 255, 0.7);
+  filter: brightness(1.1);
+}
+
+.edit-large-btn {
+  background: linear-gradient(135deg, #ffd166, #ffb84d);
+  color: #2a1604;
+  box-shadow: 0 8px 24px rgba(255, 209, 102, 0.5);
+}
+
+.edit-large-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 12px 32px rgba(255, 209, 102, 0.7);
+  filter: brightness(1.1);
 }
 
 .card-media.placeholder {

@@ -1258,8 +1258,14 @@ function renderSongs(songs) {
   songsGrid.innerHTML = songs
     .map(
       (song) => `
-      <article class="card">
-        ${renderCardImage(song.image, `${song.title} cover image`)}
+      <article class="card card-playable">
+        <div class="card-media-wrap">
+          ${renderCardImage(song.image, `${song.title} cover image`)}
+          <div class="card-hover-overlay">
+            <button class="play-large-btn" data-type="Song" data-id="${song.id}" aria-label="Play ${escapeHtml(song.title)}">▶</button>
+            <button class="edit-large-btn" data-action="edit-track" data-type="Song" data-id="${song.id}" aria-label="Edit ${escapeHtml(song.title)}">✎</button>
+          </div>
+        </div>
         <h3>${escapeHtml(song.title)}</h3>
         <p>${escapeHtml(song.artist)}</p>
         <p>Album: ${escapeHtml(song.album)}</p>
@@ -1284,6 +1290,27 @@ function renderSongs(songs) {
       duration: 600,
       easing: 'easeOutQuad',
       delay: anime.stagger(40)
+    });
+  }
+
+  // setup hover overlay animations on cards
+  if (window.anime) {
+    songsGrid.querySelectorAll('.card-playable').forEach(card => {
+      const overlay = card.querySelector('.card-hover-overlay');
+      const buttons = card.querySelectorAll('.play-large-btn, .edit-large-btn');
+      
+      if (overlay) {
+        card.addEventListener('mouseenter', () => {
+          anime({
+            targets: buttons,
+            scale: [0, 1],
+            rotate: [45, 0],
+            duration: 400,
+            easing: 'easeOutElastic(1, .7)',
+            delay: anime.stagger(80)
+          });
+        });
+      }
     });
   }
 }
