@@ -16,6 +16,21 @@ function makeArtwork(url, alt) {
   img.src = url;
   img.alt = alt;
   img.loading = "lazy";
+
+  // Provide graceful fallback for browsers that don't support WEBP or when the
+  // image fails to load. Choose a sensible default based on the path.
+  const defaultArtist = "songs/images/artists/default-artist.svg";
+  const defaultAlbum = "songs/images/albums/default-album.svg";
+  const defaultFallback = String(url).includes("/artists/") ? defaultArtist : defaultAlbum;
+
+  img.addEventListener("error", () => {
+    if (img.src && !img.src.endsWith(defaultFallback)) {
+      img.src = defaultFallback;
+    } else {
+      img.style.display = "none";
+    }
+  });
+
   return img;
 }
 
