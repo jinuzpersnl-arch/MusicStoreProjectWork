@@ -622,6 +622,77 @@ body {
   accent-color: var(--accent-1);
 }
 
+.editor-panel {
+  margin-top: 0.65rem;
+  border: 1px solid #6f97a255;
+  border-radius: 10px;
+  padding: 0.58rem;
+  background: #102027d4;
+}
+
+.editor-title {
+  margin: 0;
+  color: #d9ecef;
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.editor-grid {
+  margin-top: 0.42rem;
+  display: grid;
+  grid-template-columns: auto 1fr auto 1fr;
+  gap: 0.42rem;
+  align-items: center;
+}
+
+.editor-grid label {
+  color: #bfd3d8;
+  font-size: 0.72rem;
+}
+
+.editor-grid input {
+  border: 1px solid #6f97a266;
+  border-radius: 8px;
+  padding: 0.34rem 0.46rem;
+  background: #13252dd9;
+  color: #edf8fa;
+  font: inherit;
+  font-size: 0.76rem;
+}
+
+.editor-buttons {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.38rem;
+}
+
+.editor-buttons button {
+  border: 1px solid #6f97a266;
+  border-radius: 999px;
+  padding: 0.34rem 0.62rem;
+  background: #173039;
+  color: #edf8fa;
+  font: inherit;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.editor-buttons button:hover {
+  transform: translateY(-1px);
+}
+
+.editor-status {
+  margin: 0.5rem 0 0;
+  color: #9fb8bf;
+  font-size: 0.74rem;
+}
+
 @media (max-width: 1040px) {
   .hero-panel,
   .content-grid {
@@ -699,5 +770,9 @@ body {
     grid-template-columns: 1fr;
     gap: 0.5rem;
     min-height: 136px;
+  }
+
+  .editor-grid {
+    grid-template-columns: 1fr;
   }
 }
