@@ -10,7 +10,9 @@ const DEFAULT_CREDENTIALS = {
 function ensureAuthenticated() {
   if (!isLoggedIn()) {
     window.location.href = 'login.html';
+    return false;
   }
+  return true;
 }
 window.ensureAuthenticated = ensureAuthenticated; // expose for pages
 

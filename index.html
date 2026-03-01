@@ -17,16 +17,85 @@
   <!-- anime.js for advanced animations -->
   <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
   <link rel="stylesheet" href="style.css?v=20260301f" />
-  <style>body{visibility:hidden;}</style>
+  <style>
+    /* CRITICAL: Immediately hide body to prevent any flash */
+    html body {
+      display: none !important;
+    }
+    /* Loading overlay - shows immediately before body is ready */
+    #loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: #0b1328;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 2147483647;
+      font-family: 'Manrope', sans-serif;
+    }
+    #loading-overlay .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(72, 184, 255, 0.3);
+      border-top-color: #48b8ff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    #loading-overlay .loading-text {
+      margin-top: 16px;
+      color: #48b8ff;
+      font-size: 14px;
+      letter-spacing: 0.05em;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    /* Body shown state */
+    body.ready {
+      display: block !important;
+    }
+  </style>
 </head>
 <body data-page="home">
+  <!-- Loading Overlay - ALWAYS visible until explicitly hidden -->
+  <div id="loading-overlay">
+    <div class="spinner"></div>
+    <div class="loading-text">Loading...</div>
+  </div>
+
   <!-- Authentication Setup -->
   <script src="auth-script.js"></script>
   <script>
-    // ensure user is logged in before rendering
-    ensureAuthenticated();
-    // reveal once DOM ready (won't run if redirected)
-    document.addEventListener('DOMContentLoaded', function(){ document.body.style.visibility='visible'; });
+    // Store reference to loading overlay
+    var loadingOverlay = document.getElementById('loading-overlay');
+    
+    // Function to hide overlay and show body
+    function revealContent() {
+      // Show body first
+      document.body.classList.add('ready');
+      
+      // Then fade out overlay
+      if (loadingOverlay) {
+        loadingOverlay.style.transition = 'opacity 0.3s ease';
+        loadingOverlay.style.opacity = '0';
+        setTimeout(function() {
+          loadingOverlay.style.display = 'none';
+        }, 300);
+      }
+    }
+    
+    // Check authentication immediately
+    // ensureAuthenticated() returns true if logged in, false if not (and redirects to login)
+    if (ensureAuthenticated()) {
+      // User is authenticated - wait for DOM and all resources
+      if (document.readyState === 'complete') {
+        revealContent();
+      } else {
+        window.addEventListener('load', revealContent);
+      }
+    }
+    // If not authenticated, ensureAuthenticated() already redirected to login.html
   </script>
   
   <div class="ambient" aria-hidden="true"></div>
