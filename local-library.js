@@ -102,7 +102,8 @@ async function loadLibraryData() {
 
   return {
     songs,
-    podcasts: Array.isArray(podcastsJson?.podcasts) ? podcastsJson.podcasts : []
+    podcasts: Array.isArray(podcastsJson?.podcasts) ? podcastsJson.podcasts : [],
+    artists: Array.isArray(artistsJson?.artists) ? artistsJson.artists : []
   };
 }
 
