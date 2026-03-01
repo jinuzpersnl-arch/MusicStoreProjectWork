@@ -1052,6 +1052,89 @@ async function fetchArchiveData(searchTerm) {
   };
 }
 
+function isLocalMediaUrl(url) {
+  const value = String(url || "").trim().toLowerCase();
+  return value.startsWith("songs/");
+}
+
+async function isMediaUrlReachable(url) {
+  const value = String(url || "").trim();
+  if (!value) return false;
+  if (!isLocalMediaUrl(value)) return true;
+
+  try {
+    const head = await fetch(value, { method: "HEAD", cache: "no-store" });
+    if (head.ok) return true;
+  } catch {
+    // Fall through to GET probe.
+  }
+
+  try {
+    const getProbe = await fetch(value, { method: "GET", cache: "no-store" });
+    return getProbe.ok;
+  } catch {
+    return false;
+  }
+}
+
+async function validateLocalMediaAvailability(data) {
+  const reachabilityCache = new Map();
+  const checkReachable = async (url) => {
+    if (!reachabilityCache.has(url)) {
+      reachabilityCache.set(url, isMediaUrlReachable(url));
+    }
+    return reachabilityCache.get(url);
+  };
+
+  const validatedSongs = (
+    await Promise.all(
+      (data.songs || []).map(async (song) => {
+        const downloads = Array.isArray(song.downloads) ? song.downloads : [];
+        const checkedDownloads = (
+          await Promise.all(
+            downloads.map(async (entry) => ({
+              entry,
+              reachable: await checkReachable(entry.url)
+            }))
+          )
+        ).filter((row) => row.reachable).map((row) => row.entry);
+
+        const playbackCandidates = [
+          ...checkedDownloads.map((entry) => entry.url),
+          song.audioUrl
+        ].filter(Boolean);
+
+        const playable = await Promise.all(playbackCandidates.map((url) => checkReachable(url)));
+        const firstPlayable = playbackCandidates.find((_, index) => playable[index]) || "";
+        if (!firstPlayable) return null;
+
+        return {
+          ...song,
+          downloads: checkedDownloads,
+          audioUrl: firstPlayable
+        };
+      })
+    )
+  ).filter(Boolean);
+
+  const validatedPodcasts = (
+    await Promise.all(
+      (data.podcasts || []).map(async (podcast) => {
+        if (!(await checkReachable(podcast.audioUrl))) return null;
+        return podcast;
+      })
+    )
+  ).filter(Boolean);
+
+  return {
+    songs: validatedSongs,
+    artists: buildArtistsFromSongs(validatedSongs),
+    albums: buildAlbumsFromSongs(validatedSongs),
+    books: data.books || [],
+    podcasts: validatedPodcasts
+  };
+}
+
 async function fetchLocalLibraryData() {
   const [catalogResponse, artistsResponse, albumsResponse, podcastsResponse, booksResponse] = await Promise.all([
     fetch(LOCAL_LIBRARY_PATH, { cache: "no-store" }),
@@ -1099,7 +1182,12 @@ async function fetchLocalLibraryData() {
     }
   }
 
-  return normalizeLocalCatalog(raw);
+  const normalized = normalizeLocalCatalog(raw);
+  const validated = await validateLocalMediaAvailability(normalized);
+  if (!validated.songs.length && !validated.podcasts.length) {
+    throw new Error("No playable local audio files found.");
+  }
+  return validated;
 }
 
 async function fetchLiveMusicData(searchTerm) {
