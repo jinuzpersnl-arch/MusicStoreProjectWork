@@ -114,6 +114,8 @@ const waveStartLabel = document.getElementById("waveStartLabel");
 const waveSelectionLabel = document.getElementById("waveSelectionLabel");
 const waveEndLabel = document.getElementById("waveEndLabel");
 const editorPanel = document.querySelector(".editor-panel");
+const playerPanel = document.querySelector(".player-panel");
+const toggleEditorBtn = document.getElementById("toggleEditorBtn");
 const editorPreviewImage = document.getElementById("editorPreviewImage");
 const editorPreviewTitle = document.getElementById("editorPreviewTitle");
 const editorTimecode = document.getElementById("editorTimecode");
@@ -276,6 +278,15 @@ function setEditorBusy(busy, button = null) {
 
   if (busy && button) {
     button.classList.add("is-working");
+  }
+}
+
+function setEditorCollapsed(collapsed) {
+  if (!playerPanel) return;
+  playerPanel.classList.toggle("editor-collapsed", collapsed);
+  if (toggleEditorBtn) {
+    toggleEditorBtn.textContent = collapsed ? "Open Editor" : "Hide Editor";
+    toggleEditorBtn.setAttribute("aria-expanded", collapsed ? "false" : "true");
   }
 }
 
@@ -2133,6 +2144,11 @@ bassBoostBtn?.addEventListener("click", () => {
   toggleEffect("bassBoost");
 });
 
+toggleEditorBtn?.addEventListener("click", () => {
+  const collapsed = playerPanel?.classList.contains("editor-collapsed");
+  setEditorCollapsed(!collapsed);
+});
+
 window.addEventListener("resize", () => {
   drawWaveform();
 });
@@ -2156,5 +2172,6 @@ updateEffectsUI();
 updateWaveLabels();
 drawWaveform();
 startWaveformAnimator();
+setEditorCollapsed(true);
 
 initializeData();
