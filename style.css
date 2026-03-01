@@ -330,6 +330,7 @@ body {
   grid-template-areas:
     "songs artists"
     "songs albums"
+    "books books"
     "podcasts podcasts";
   gap: 0.82rem;
 }
@@ -344,6 +345,7 @@ body {
 .songs-panel { grid-area: songs; }
 .artists-panel { grid-area: artists; }
 .albums-panel { grid-area: albums; }
+.books-panel { grid-area: books; }
 .podcasts-panel { grid-area: podcasts; }
 
 .section-title-row {
@@ -390,7 +392,8 @@ body {
 }
 
 #artistsGrid,
-#albumsGrid {
+#albumsGrid,
+#booksGrid {
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 
@@ -630,6 +633,7 @@ body {
       "songs"
       "artists"
       "albums"
+      "books"
       "podcasts";
   }
 }

@@ -4,6 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Music Store</title>
+  <meta name="theme-color" content="#0b1013" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="songs/images/albums/default-album.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -19,6 +24,7 @@
       <a href="#songs" class="rail-link">Songs</a>
       <a href="artists.html" class="rail-link">Artists</a>
       <a href="albums.html" class="rail-link">Albums</a>
+      <a href="#books" class="rail-link">Books</a>
       <a href="#podcasts" class="rail-link">Podcasts</a>
     </aside>
 
@@ -36,6 +42,7 @@
           <li><a href="#songs">Songs</a></li>
           <li><a href="artists.html">Artists</a></li>
           <li><a href="albums.html">Albums</a></li>
+          <li><a href="#books">Books</a></li>
           <li><a href="#podcasts">Podcasts</a></li>
         </ul>
       </header>
@@ -48,8 +55,8 @@
         </div>
 
         <div class="search-wrap">
-          <label for="searchInput">Search Music Content</label>
-          <input type="text" id="searchInput" placeholder="Search songs, artists, albums, podcasts..." />
+          <label for="searchInput">Search Music + Book Content</label>
+          <input type="text" id="searchInput" placeholder="Search songs, artists, albums, books, podcasts..." />
           <div class="language-tools">
             <label for="languageSelect">Language</label>
             <select id="languageSelect" aria-label="Select language">
@@ -118,6 +125,13 @@
           <div id="albumsGrid" class="grid"></div>
         </section>
 
+        <section id="books" class="content-section panel books-panel">
+          <div class="section-title-row">
+            <h2>Books</h2>
+          </div>
+          <div id="booksGrid" class="grid"></div>
+        </section>
+
         <section id="podcasts" class="content-section panel podcasts-panel">
           <div class="section-title-row">
             <h2>Podcasts</h2>
@@ -158,5 +172,6 @@
   </footer>
 
   <script src="script.js"></script>
+  <script src="sw-register.js"></script>
 </body>
 </html>
