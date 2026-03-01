@@ -12,7 +12,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- FontAwesome icons for UI -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-pq3oY2c13nLZTllT+zTL8CqvGjYH6G+j6lJzi10BGSAdoo6gWQBaIj++ImQxGc1dQc5sKXc5teLoNU0f4rOiUg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <!-- anime.js for advanced animations -->
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
   <link rel="stylesheet" href="style.css?v=20260301b" />
+  <!-- require login for player page -->
+  <script src="auth-script.js"></script>
+  <script>ensureAuthenticated();</script>
 </head>
 <body data-page="player">
   <div class="ambient" aria-hidden="true"></div>
@@ -20,13 +27,13 @@
   <main id="home" class="shell shell-advanced">
     <aside class="side-rail" aria-label="Quick links">
       <div class="rail-brand">MS</div>
-      <a href="index.html" class="rail-link">Home</a>
-      <a href="#songs" class="rail-link">Songs</a>
-      <a href="player.html" class="rail-link">Player</a>
-      <a href="artists.html" class="rail-link">Artists</a>
-      <a href="albums.html" class="rail-link">Albums</a>
-      <a href="#books" class="rail-link">Books</a>
-      <a href="#podcasts" class="rail-link">Podcasts</a>
+      <a href="index.html" class="rail-link"><i class="fa fa-home"></i></a>
+      <a href="#songs" class="rail-link"><i class="fa fa-music"></i></a>
+      <a href="player.html" class="rail-link"><i class="fa fa-play-circle"></i></a>
+      <a href="artists.html" class="rail-link"><i class="fa fa-user"></i></a>
+      <a href="albums.html" class="rail-link"><i class="fa fa-compact-disc"></i></a>
+      <a href="#books" class="rail-link"><i class="fa fa-book"></i></a>
+      <a href="#podcasts" class="rail-link"><i class="fa fa-podcast"></i></a>
     </aside>
 
     <section class="stage">
@@ -46,6 +53,7 @@
           <li><a href="albums.html">Albums</a></li>
           <li><a href="#books">Books</a></li>
           <li><a href="#podcasts">Podcasts</a></li>
+          <li><button class="logout-btn" onclick="logoutUser()">Logout</button></li>
         </ul>
       </header>
 

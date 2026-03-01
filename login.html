@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Music Store - Login</title>
+  <meta name="theme-color" content="#0b1013" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-pq3oY2c13nLZTllT+zTL8CqvGjYH6G+j6lJzi10BGSAdoo6gWQBaIj++ImQxGc1dQc5sKXc5teLoNU0f4rOiUg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="auth-style.css" />
+</head>
+<body class="auth-body">
+  <div class="auth-container">
+    <div class="auth-card">
+      <!-- Logo/Brand -->
+      <div class="auth-header">
+        <div class="auth-logo">MS</div>
+        <h1>Music Store</h1>
+        <p class="auth-subtitle">Your Personal Music Sanctuary</p>
+      </div>
+
+      <!-- Login Form -->
+      <div class="auth-form-wrapper" id="loginWrapper">
+        <form class="auth-form" id="loginForm">
+          <h2>Login</h2>
+          <p class="form-note">(use <strong>Music Store</strong> / <strong>12345</strong> as default credentials)</p>
+          
+          <div class="form-group">
+            <label for="loginUsername">Username</label>
+            <input 
+              type="text" 
+              id="loginUsername" 
+              name="username" 
+              placeholder="Enter your username"
+              value="Music Store"
+              required
+            />
+            <span class="error-message" id="loginUsernameError"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="loginPassword">Password</label>
+            <div class="password-input-wrapper">
+              <input 
+                type="password" 
+                id="loginPassword" 
+                name="password" 
+                placeholder="Enter your password"
+                value="12345"
+                required
+              />
+              <button type="button" class="password-toggle" id="loginPasswordToggle">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+            <span class="error-message" id="loginPasswordError"></span>
+          </div>
+
+          <div class="form-group checkbox">
+            <input type="checkbox" id="rememberMe" name="rememberMe" />
+            <label for="rememberMe">Remember me</label>
+          </div>
+
+          <button type="submit" class="auth-btn login-btn">Login</button>
+          <span class="error-message" id="loginGeneralError"></span>
+        </form>
+
+        <div class="auth-footer">
+          <p>Don't have an account? <button type="button" class="toggle-btn" id="toggleToSignup">Sign Up</button></p>
+        </div>
+      </div>
+
+      <!-- Signup Form -->
+      <div class="auth-form-wrapper hidden" id="signupWrapper">
+        <form class="auth-form" id="signupForm">
+          <h2>Sign Up</h2>
+          
+          <div class="form-group">
+            <label for="signupUsername">Username</label>
+            <input 
+              type="text" 
+              id="signupUsername" 
+              name="username" 
+              placeholder="Choose a username"
+              required
+            />
+            <span class="error-message" id="signupUsernameError"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="signupPassword">Password</label>
+            <div class="password-input-wrapper">
+              <input 
+                type="password" 
+                id="signupPassword" 
+                name="password" 
+                placeholder="Create a password"
+                required
+              />
+              <button type="button" class="password-toggle" id="signupPasswordToggle">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+            <span class="error-message" id="signupPasswordError"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="confirmPassword">Confirm Password</label>
+            <div class="password-input-wrapper">
+              <input 
+                type="password" 
+                id="confirmPassword" 
+                name="confirmPassword" 
+                placeholder="Confirm your password"
+                required
+              />
+              <button type="button" class="password-toggle" id="confirmPasswordToggle">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+            <span class="error-message" id="confirmPasswordError"></span>
+          </div>
+
+          <button type="submit" class="auth-btn signup-btn">Create Account</button>
+          <span class="error-message" id="signupGeneralError"></span>
+        </form>
+
+        <div class="auth-footer">
+          <p>Already have an account? <button type="button" class="toggle-btn" id="toggleToLogin">Login</button></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Background Animation -->
+    <div class="auth-bg-animation" aria-hidden="true">
+      <div class="float-circle circle-1"></div>
+      <div class="float-circle circle-2"></div>
+      <div class="float-circle circle-3"></div>
+    </div>
+  </div>
+
+  <script src="auth-script.js"></script>
+</body>
+</html>

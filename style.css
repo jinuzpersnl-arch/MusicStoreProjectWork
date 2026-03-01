@@ -240,6 +240,35 @@ body[data-page="home"] .player-panel {
   background: #213859ea;
 }
 
+.logout-btn {
+  text-decoration: none;
+  color: #ccdaf5;
+  font-size: 0.73rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.5rem 0.74rem;
+  border-radius: 999px;
+  border: 1px solid #5871a566;
+  background: #47373e;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+  cursor: pointer;
+  font-family: "Manrope", sans-serif;
+}
+
+.logout-btn i {
+  font-size: 1rem;
+}
+
+.logout-btn:hover {
+  color: var(--text-0);
+  border-color: #ff9e9e8f;
+  background: #5a4a52;
+}
+
 .hero-panel {
   margin-top: 1rem;
   border-radius: 20px;

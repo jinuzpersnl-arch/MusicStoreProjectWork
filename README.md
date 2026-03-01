@@ -48,6 +48,15 @@ This project is open source under the MIT License.
 3. Open your browser and go to:
    - `http://localhost:5500`
 
+> **Login:** when the app opens you'll be asked to authenticate. Use the default credentials or create your own.
+>
+> - Username: `Music Store`
+> - Password: `12345`
+>
+> The login form includes a **Remember me** checkbox. If selected, your session persists across browser restarts; otherwise you'll stay logged in only until the tab is closed.
+
+
+
 You can also open `index.html` directly, but a local server is better for consistent browser behavior.
 
 ## API Notes

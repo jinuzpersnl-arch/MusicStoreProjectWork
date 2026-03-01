@@ -19,6 +19,13 @@
   <link rel="stylesheet" href="style.css?v=20260301f" />
 </head>
 <body data-page="home">
+  <!-- Authentication Setup -->
+  <script src="auth-script.js"></script>
+  <script>
+    // ensure user is logged in before rendering
+    ensureAuthenticated();
+  </script>
+  
   <div class="ambient" aria-hidden="true"></div>
 
   <main id="home" class="shell shell-advanced">
@@ -50,6 +57,7 @@
           <li><a href="albums.html"><i class="fa fa-compact-disc"></i>Albums</a></li>
           <li><a href="#books"><i class="fa fa-book"></i>Books</a></li>
           <li><a href="#podcasts"><i class="fa fa-podcast"></i>Podcasts</a></li>
+          <li><button class="logout-btn" onclick="logoutUser()"><i class="fa fa-sign-out"></i>Logout</button></li>
         </ul>
       </header>
 
