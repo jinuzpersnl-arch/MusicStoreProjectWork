@@ -89,6 +89,62 @@ const langChips = document.getElementById("langChips");
 const menuToggle = document.getElementById("menuToggle");
 const navLinks = document.getElementById("navLinks");
 
+// helper for scroll-triggered animations
+function initScrollAnimations() {
+  const observer = new IntersectionObserver((entries, obs) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        obs.unobserve(entry.target);
+        // animate with anime.js if available, otherwise fall back to CSS
+        if (window.anime) {
+          anime({
+            targets: entry.target,
+            opacity: [0,1],
+            translateY: [20,0],
+            duration: 700,
+            easing: 'easeOutQuad'
+          });
+        } else {
+          entry.target.classList.add('animated', 'fade-in-up');
+        }
+      }
+    });
+  }, { threshold: 0.2 });
+
+  document.querySelectorAll('.status-tile, .hero-copy-block, .panel, .card, .song-item').forEach(el => {
+    el.classList.add('opacity-0'); // start hidden
+    observer.observe(el);
+  });
+}
+
+// toggle the mobile navigation with animation
+function bindMenuToggle() {
+  if (!menuToggle || !navLinks) return;
+  menuToggle.addEventListener('click', () => {
+    const expanded = menuToggle.getAttribute('aria-expanded') === 'true';
+    menuToggle.setAttribute('aria-expanded', String(!expanded));
+    navLinks.classList.toggle('open');
+
+    // animate the toggle icon
+    if (window.anime) {
+      anime({
+        targets: menuToggle,
+        rotate: expanded ? 0 : 90,
+        duration: 400,
+        easing: 'easeOutExpo'
+      });
+    } else {
+      menuToggle.classList.toggle('rotated');
+    }
+  });
+}
+
+// kick off UI helpers once DOM has been parsed
+document.addEventListener('DOMContentLoaded', () => {
+  initScrollAnimations();
+  bindMenuToggle();
+});
+
 const audioPlayer = document.getElementById("audioPlayer");
 const nowPlayingTitle = document.getElementById("nowPlayingTitle");
 const nowPlayingMeta = document.getElementById("nowPlayingMeta");
@@ -122,6 +178,12 @@ const editorTimecode = document.getElementById("editorTimecode");
 const noiseReductionBtn = document.getElementById("noiseReductionBtn");
 const autocorrectBtn = document.getElementById("autocorrectBtn");
 const bassBoostBtn = document.getElementById("bassBoostBtn");
+const PAGE_TYPE = document.body?.dataset?.page || "home";
+const IS_HOME_PAGE = PAGE_TYPE === "home";
+const IS_PLAYER_PAGE = PAGE_TYPE === "player";
+const PLAYER_REQUEST_KEY = "musicStorePendingTrackRequest";
+const URL_PARAMS = new URLSearchParams(window.location.search);
+const SHOULD_OPEN_EDITOR = URL_PARAMS.get("mode") === "edit";
 
 const appState = {
   sourceData: cloneData(fallbackData),
@@ -133,7 +195,9 @@ const appState = {
   selectedSource: "local",
   preferredQuality: "any",
   preferredFormat: "any",
-  minDurationMinutes: 1
+  minDurationMinutes: 1,
+  pendingTrackRequest: null,
+  autoPlayHandled: false
 };
 
 const editorState = {
@@ -204,6 +268,14 @@ const FORMAT_GROUPS = {
   wav: ["WAVE"]
 };
 
+appState.pendingTrackRequest = loadPendingTrackRequest();
+if (IS_PLAYER_PAGE && appState.pendingTrackRequest?.source) {
+  appState.selectedSource = appState.pendingTrackRequest.source;
+}
+if (IS_PLAYER_PAGE && appState.pendingTrackRequest?.language && LANGUAGE_PRESETS[appState.pendingTrackRequest.language]) {
+  appState.selectedLanguage = appState.pendingTrackRequest.language;
+}
+
 function cloneData(data) {
   return JSON.parse(JSON.stringify(data));
 }
@@ -237,6 +309,41 @@ function formatBytes(bytes) {
   return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+// Handle lightweight shell commands typed into the search bar.
+// Commands must start with a slash (/). Examples:
+//   /play 123     → play song with id 123
+//   /artist Name  → open artist page
+//   /album Title [Artist] → open album page
+//   /logout       → sign out
+function handleShellCommand(cmd) {
+  const parts = cmd.split(/\s+/).filter(Boolean);
+  if (!parts.length) return;
+  const action = parts.shift().toLowerCase();
+  switch (action) {
+    case 'play':
+      if (parts.length) redirectToPlayer('song', parts[0]);
+      break;
+    case 'artist':
+      const artist = parts.join(' ');
+      if (artist) window.location.href = `artist-detail.html?artist=${encodeURIComponent(artist)}`;
+      break;
+    case 'album':
+      const album = parts.shift() || '';
+      const artistName = parts.join(' ');
+      if (album) {
+        let url = `album-detail.html?album=${encodeURIComponent(album)}`;
+        if (artistName) url += `&artist=${encodeURIComponent(artistName)}`;
+        window.location.href = url;
+      }
+      break;
+    case 'logout':
+      logoutUser();
+      break;
+    default:
+      setStatus(`Unknown command: ${action}`);
+  }
+}
+
 function parseDurationToSeconds(durationText) {
   const text = String(durationText || "").trim();
   if (!text.includes(":")) return 0;
@@ -246,6 +353,136 @@ function parseDurationToSeconds(durationText) {
   if (parts.length === 2) return parts[0] * 60 + parts[1];
   if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
   return 0;
+}
+
+function parseTrackRequestFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("autoplay") !== "1") return null;
+  const type = params.get("type");
+  const id = params.get("id");
+  if (!type || !id) return null;
+  return {
+    type,
+    id,
+    source: params.get("source") || "",
+    language: params.get("lang") || ""
+  };
+}
+
+function loadPendingTrackRequest() {
+  const fromUrl = parseTrackRequestFromUrl();
+  if (fromUrl) return fromUrl;
+
+  try {
+    const raw = sessionStorage.getItem(PLAYER_REQUEST_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed?.type || !parsed?.id) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function savePendingTrackRequest(request) {
+  try {
+    sessionStorage.setItem(PLAYER_REQUEST_KEY, JSON.stringify(request));
+  } catch {
+    // Ignore storage failures in private/restricted contexts.
+  }
+}
+
+function clearPendingTrackRequest() {
+  try {
+    sessionStorage.removeItem(PLAYER_REQUEST_KEY);
+  } catch {
+    // Ignore storage failures in private/restricted contexts.
+  }
+}
+
+function buildPlayerRedirectUrl(type, id) {
+  const params = new URLSearchParams({
+    autoplay: "1",
+    type: String(type),
+    id: String(id),
+    source: String(appState.selectedSource || ""),
+    lang: String(appState.selectedLanguage || "")
+  });
+  return `player.html?${params.toString()}`;
+}
+
+function buildEditorTabUrl(type = "", id = "") {
+  const params = new URLSearchParams({
+    source: String(appState.selectedSource || ""),
+    lang: String(appState.selectedLanguage || ""),
+    mode: "edit"
+  });
+  if (type && id) {
+    params.set("autoplay", "1");
+    params.set("type", String(type));
+    params.set("id", String(id));
+  }
+  return `player.html?${params.toString()}`;
+}
+
+function openEditorInNewTab(type, id) {
+  const request = {
+    type: String(type),
+    id: String(id),
+    source: String(appState.selectedSource || ""),
+    language: String(appState.selectedLanguage || "")
+  };
+  savePendingTrackRequest(request);
+  window.open(buildEditorTabUrl(type, id), "_blank", "noopener");
+}
+
+function openStandaloneEditorFromCurrentContext() {
+  let type = "";
+  let id = "";
+  if (appState.currentTrackIndex > -1 && appState.currentTrackIndex < appState.playableQueue.length) {
+    const track = appState.playableQueue[appState.currentTrackIndex];
+    type = String(track.type || "");
+    id = String(track.id || "");
+  }
+  window.open(buildEditorTabUrl(type, id), "_blank", "noopener");
+}
+
+function redirectToPlayer(type, id) {
+  const request = {
+    type: String(type),
+    id: String(id),
+    source: String(appState.selectedSource || ""),
+    language: String(appState.selectedLanguage || "")
+  };
+  savePendingTrackRequest(request);
+  window.location.href = buildPlayerRedirectUrl(type, id);
+}
+
+function tryAutoPlayPendingTrack() {
+  if (!IS_PLAYER_PAGE || appState.autoPlayHandled) return;
+  const pending = appState.pendingTrackRequest;
+  if (!pending?.type || !pending?.id) {
+    appState.autoPlayHandled = true;
+    return;
+  }
+
+  const index = appState.playableQueue.findIndex(
+    (track) => track.type === pending.type && String(track.id) === String(pending.id)
+  );
+  if (index === -1) return;
+
+  appState.autoPlayHandled = true;
+  appState.pendingTrackRequest = null;
+  clearPendingTrackRequest();
+  if (window.location.search.includes("autoplay=1")) {
+    const cleanUrl = `${window.location.pathname}${window.location.hash}`;
+    window.history.replaceState({}, "", cleanUrl);
+  }
+  playTrackByIndex(index);
+  if (SHOULD_OPEN_EDITOR) {
+    setEditorCollapsed(false);
+    editorPanel?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 }
 
 function setStatus(message) {
@@ -283,6 +520,31 @@ function setEditorBusy(busy, button = null) {
 
 function setEditorCollapsed(collapsed) {
   if (!playerPanel) return;
+  // animate the height of the editor panel if anime available
+  const panel = playerPanel.querySelector('.editor-panel');
+  if (panel && window.anime) {
+    const startHeight = panel.scrollHeight;
+    panel.style.overflow = 'hidden';
+    if (collapsed) {
+      anime({
+        targets: panel,
+        height: [startHeight, 0],
+        duration: 500,
+        easing: 'easeInOutQuad',
+        complete() { panel.style.height = ''; panel.style.overflow = ''; }
+      });
+    } else {
+      panel.style.height = '0px';
+      anime({
+        targets: panel,
+        height: [0, panel.scrollHeight],
+        duration: 500,
+        easing: 'easeInOutQuad',
+        complete() { panel.style.height = ''; panel.style.overflow = ''; }
+      });
+    }
+  }
+
   playerPanel.classList.toggle("editor-collapsed", collapsed);
   if (toggleEditorBtn) {
     toggleEditorBtn.textContent = collapsed ? "Open Editor" : "Hide Editor";
@@ -546,6 +808,22 @@ function drawWaveform() {
     drawWaveformLane(waveformAuxCanvasA, []);
     drawWaveformLane(waveformAuxCanvasB, []);
     return;
+  }
+
+  // make sure canvas is visible smoothly
+  if (waveformCanvas) {
+    waveformCanvas.style.opacity = 0;
+    if (window.anime) {
+      anime({
+        targets: waveformCanvas,
+        opacity: [0,1],
+        duration: 800,
+        easing: 'easeOutQuad'
+      });
+    } else {
+      waveformCanvas.style.transition = 'opacity 0.8s ease';
+      waveformCanvas.style.opacity = 1;
+    }
   }
 
   const duration = getActiveDuration() || 1;
@@ -951,6 +1229,7 @@ function applyPreferencesAndRender(searchTerm) {
   appState.musicData = applySongPreferences(appState.sourceData);
   rebuildPlayableQueue();
   filterAndRender(searchTerm);
+  tryAutoPlayPendingTrack();
 }
 
 function rebuildPlayableQueue() {
@@ -961,6 +1240,16 @@ function rebuildPlayableQueue() {
 
   if (appState.currentTrackIndex >= appState.playableQueue.length) {
     appState.currentTrackIndex = -1;
+  }
+
+  // simple animation to indicate queue update
+  if (window.anime && playerPanel) {
+    anime({
+      targets: playerPanel,
+      translateX: [-10, 0],
+      duration: 300,
+      easing: 'easeOutQuad'
+    });
   }
 }
 
@@ -1004,19 +1293,61 @@ function renderSongs(songs) {
   songsGrid.innerHTML = songs
     .map(
       (song) => `
-      <article class="card">
-        ${renderCardImage(song.image, `${song.title} cover image`)}
+      <article class="card card-playable">
+        <div class="card-media-wrap">
+          ${renderCardImage(song.image, `${song.title} cover image`)}
+          <div class="card-hover-overlay">
+            <button class="play-large-btn" data-type="Song" data-id="${song.id}" aria-label="Play ${escapeHtml(song.title)}">▶</button>
+            <button class="edit-large-btn" data-action="edit-track" data-type="Song" data-id="${song.id}" aria-label="Edit ${escapeHtml(song.title)}">✎</button>
+          </div>
+        </div>
         <h3>${escapeHtml(song.title)}</h3>
         <p>${escapeHtml(song.artist)}</p>
         <p>Album: ${escapeHtml(song.album)}</p>
         <p>Duration: ${escapeHtml(song.duration)}</p>
         <p>Formats: ${escapeHtml((song.downloads || []).map((d) => d.format).join(", ") || "Unknown")}</p>
-        <button data-type="Song" data-id="${song.id}">Play</button>
+        <div class="card-actions">
+          <button data-type="Song" data-id="${song.id}">Play</button>
+          <button class="card-edit-btn" data-action="edit-track" data-type="Song" data-id="${song.id}">Edit</button>
+        </div>
         ${renderDownloadList(song)}
       </article>
     `
     )
     .join("");
+
+  // animate cards into view
+  if (window.anime) {
+    anime({
+      targets: songsGrid.querySelectorAll('.card'),
+      translateX: [50, 0],
+      opacity: [0, 1],
+      duration: 600,
+      easing: 'easeOutQuad',
+      delay: anime.stagger(40)
+    });
+  }
+
+  // setup hover overlay animations on cards
+  if (window.anime) {
+    songsGrid.querySelectorAll('.card-playable').forEach(card => {
+      const overlay = card.querySelector('.card-hover-overlay');
+      const buttons = card.querySelectorAll('.play-large-btn, .edit-large-btn');
+      
+      if (overlay) {
+        card.addEventListener('mouseenter', () => {
+          anime({
+            targets: buttons,
+            scale: [0, 1],
+            rotate: [45, 0],
+            duration: 400,
+            easing: 'easeOutElastic(1, .7)',
+            delay: anime.stagger(80)
+          });
+        });
+      }
+    });
+  }
 }
 
 function renderArtists(artists) {
@@ -1848,12 +2179,17 @@ async function downloadEditedAudio(mode, button = null) {
       ? buildCutBlob(audioBuffer, start, end)
       : buildTrimBlob(audioBuffer, start, end);
     const fileName = mode === "cut" ? "edited-cut.wav" : "edited-trim.wav";
-    triggerBlobDownload(blob, fileName);
-    setEditorStatus(
+    const shouldDownload = window.confirm(
       mode === "cut"
-        ? `Downloaded cut version (removed ${formatSeconds(start)} to ${formatSeconds(end)}).`
-        : `Downloaded trim version (${formatSeconds(start)} to ${formatSeconds(end)}).`
+        ? `Cut is ready (${formatSeconds(start)} to ${formatSeconds(end)} removed). Download now?`
+        : `Trim is ready (${formatSeconds(start)} to ${formatSeconds(end)}). Download now?`
     );
+    if (shouldDownload) {
+      triggerBlobDownload(blob, fileName);
+      setEditorStatus(mode === "cut" ? "Cut exported and downloaded." : "Trim exported and downloaded.");
+    } else {
+      setEditorStatus("Export ready. Download canceled.");
+    }
   } catch (error) {
     setEditorStatus(error?.message || "Audio export failed.");
   } finally {
@@ -1944,6 +2280,17 @@ async function initializeData() {
   await reloadFromApi("Loading");
 }
 
+// simple shell-style command interpreter (prefix with '/')
+searchInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const val = searchInput.value.trim();
+    if (val.startsWith('/')) {
+      e.preventDefault();
+      handleShellCommand(val.slice(1).trim());
+    }
+  }
+});
+
 searchInput.addEventListener("input", (event) => {
   const term = event.target.value;
   filterAndRender(term);
@@ -2022,8 +2369,23 @@ document.body.addEventListener("click", (event) => {
   const target = event.target;
   if (!(target instanceof HTMLElement)) return;
 
+  if (target.matches(".card button[data-action='edit-track']")) {
+    const type = target.dataset.type;
+    const id = target.dataset.id;
+    if (!type || !id) return;
+    openEditorInNewTab(type, id);
+    return;
+  }
+
   if (target.matches(".card button[data-type]")) {
-    playTrackFromButton(target.dataset.type, target.dataset.id);
+    const type = target.dataset.type;
+    const id = target.dataset.id;
+    if (!type || !id) return;
+    if (IS_HOME_PAGE && type === "Song") {
+      redirectToPlayer(type, id);
+      return;
+    }
+    playTrackFromButton(type, id);
   }
 });
 
@@ -2038,6 +2400,37 @@ playBtn.addEventListener("click", () => {
 pauseBtn.addEventListener("click", () => {
   audioPlayer.pause();
 });
+
+// animate play/pause controls and title when playback changes
+if (audioPlayer) {
+  audioPlayer.addEventListener('play', () => {
+    if (window.anime) {
+      anime({
+        targets: playBtn,
+        scale: [1, 1.2, 1],
+        duration: 500,
+        easing: 'easeOutElastic(1, .8)'
+      });
+      anime({
+        targets: nowPlayingTitle,
+        scale: [1, 1.1, 1],
+        duration: 600,
+        easing: 'easeOutQuad'
+      });
+    }
+  });
+
+  audioPlayer.addEventListener('pause', () => {
+    if (window.anime) {
+      anime({
+        targets: pauseBtn,
+        scale: [1, 1.1, 1],
+        duration: 400,
+        easing: 'easeOutQuad'
+      });
+    }
+  });
+}
 
 nextBtn.addEventListener("click", () => {
   if (!appState.playableQueue.length) return;
@@ -2145,6 +2538,10 @@ bassBoostBtn?.addEventListener("click", () => {
 });
 
 toggleEditorBtn?.addEventListener("click", () => {
+  if (IS_HOME_PAGE) {
+    openStandaloneEditorFromCurrentContext();
+    return;
+  }
   const collapsed = playerPanel?.classList.contains("editor-collapsed");
   setEditorCollapsed(!collapsed);
 });
@@ -2172,6 +2569,6 @@ updateEffectsUI();
 updateWaveLabels();
 drawWaveform();
 startWaveformAnimator();
-setEditorCollapsed(true);
+setEditorCollapsed(IS_PLAYER_PAGE && SHOULD_OPEN_EDITOR ? false : true);
 
 initializeData();

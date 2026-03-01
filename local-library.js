@@ -16,6 +16,10 @@ function normalizeSong(song, index) {
   const audioUrl = normalizeLocalPath(song?.audioUrl || song?.url || song?.file || "");
   if (!audioUrl) return null;
 
+  // Extract format from file extension
+  const format = getFormatFromUrl(audioUrl);
+  const quality = guessQuality(format);
+
   return {
     id: song?.id ?? `song-${index + 1}`,
     title: song?.title || `Song ${index + 1}`,
@@ -25,8 +29,39 @@ function normalizeSong(song, index) {
     image: normalizeLocalPath(song?.image || song?.artwork || song?.cover || "") || DEFAULT_IMAGES.song,
     artistImage: normalizeLocalPath(song?.artistImage || "") || DEFAULT_IMAGES.artist,
     albumImage: normalizeLocalPath(song?.albumImage || "") || DEFAULT_IMAGES.album,
-    audioUrl
+    audioUrl,
+    downloads: [
+      {
+        label: format,
+        format: format,
+        quality: quality,
+        size: "",
+        url: audioUrl
+      }
+    ]
   };
+}
+
+function getFormatFromUrl(url) {
+  if (!url) return "MP3";
+  const ext = url.toLowerCase().split('.').pop();
+  if (ext === 'mp3') return "MP3";
+  if (ext === 'flac') return "Flac";
+  if (ext === 'wav') return "WAVE";
+  if (ext === 'ogg') return "Ogg Vorbis";
+  if (ext === 'm4a' || ext === 'aac') return "MPEG4 Audio";
+  if (ext === 'aiff' || ext === 'aif') return "AIFF";
+  return "MP3";
+}
+
+function guessQuality(format) {
+  const key = String(format || "").toLowerCase();
+  if (key.includes("flac") || key.includes("lossless") || key.includes("wave") || key.includes("aiff")) {
+    return "Lossless";
+  }
+  if (key.includes("ogg")) return "High";
+  if (key.includes("mp3") || key.includes("mpeg4") || key.includes("aac") || key.includes("m4a")) return "Standard";
+  return "Standard";
 }
 
 async function loadJsonIfExists(path) {
@@ -102,7 +137,8 @@ async function loadLibraryData() {
 
   return {
     songs,
-    podcasts: Array.isArray(podcastsJson?.podcasts) ? podcastsJson.podcasts : []
+    podcasts: Array.isArray(podcastsJson?.podcasts) ? podcastsJson.podcasts : [],
+    artists: Array.isArray(artistsJson?.artists) ? artistsJson.artists : []
   };
 }
 
@@ -184,5 +220,6 @@ window.LocalLibrary = {
   groupByArtist,
   groupByAlbum,
   songsByArtist,
-  songsByAlbum
+  songsByAlbum,
+  normalizeLocalPath
 };

@@ -12,20 +12,73 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <!-- FontAwesome icons for UI -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-pq3oY2c13nLZTllT+zTL8CqvGjYH6G+j6lJzi10BGSAdoo6gWQBaIj++ImQxGc1dQc5sKXc5teLoNU0f4rOiUg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <!-- anime.js for advanced animations -->
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+  <link rel="stylesheet" href="style.css?v=20260301f" />
+  <style>
+    /* CRITICAL: Immediately hide body to prevent flash of unstyled content */
+    html body { display: none !important; }
+    /* Loading overlay - shows while page loads */
+    #loading-overlay {
+      position: fixed; inset: 0;
+      background: #0b1328;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 2147483647;
+      font-family: 'Manrope', sans-serif;
+    }
+    #loading-overlay .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid rgba(72,184,255,0.3);
+      border-top-color: #48b8ff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    #loading-overlay .loading-text {
+      margin-top: 16px; color: #48b8ff;
+      font-size: 14px; letter-spacing: 0.05em;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    /* Body shown state */
+    body.ready { display: block !important; }
+  </style>
 </head>
-<body>
+<body data-page="home">
+  <!-- Loading Overlay - visible until page is fully ready -->
+  <div id="loading-overlay"><div class="spinner"></div><div class="loading-text">Loading...</div></div>
+
+  <!-- Authentication Setup -->
+  <script src="auth-script.js"></script>
+  <script>
+    var loadingOverlay = document.getElementById('loading-overlay');
+    function revealContent() {
+      document.body.classList.add('ready');
+      if (loadingOverlay) {
+        loadingOverlay.style.transition = 'opacity 0.3s ease';
+        loadingOverlay.style.opacity = '0';
+        setTimeout(function(){ loadingOverlay.style.display = 'none'; }, 300);
+      }
+    }
+    if (ensureAuthenticated()) {
+      if (document.readyState === 'complete') { revealContent(); }
+      else { window.addEventListener('load', revealContent); }
+    }
+  </script>
+  
   <div class="ambient" aria-hidden="true"></div>
 
-  <main id="home" class="shell">
+  <main id="home" class="shell shell-advanced">
     <aside class="side-rail" aria-label="Quick links">
       <div class="rail-brand">MS</div>
-      <a href="#home" class="rail-link">Home</a>
-      <a href="#songs" class="rail-link">Songs</a>
-      <a href="artists.html" class="rail-link">Artists</a>
-      <a href="albums.html" class="rail-link">Albums</a>
-      <a href="#books" class="rail-link">Books</a>
-      <a href="#podcasts" class="rail-link">Podcasts</a>
+      <a href="#home" class="rail-link"><i class="fa fa-home"></i></a>
+      <a href="#songs" class="rail-link"><i class="fa fa-music"></i></a>
+      <a href="player.html" class="rail-link"><i class="fa fa-play-circle"></i></a>
+      <a href="artists.html" class="rail-link"><i class="fa fa-user"></i></a>
+      <a href="albums.html" class="rail-link"><i class="fa fa-compact-disc"></i></a>
+      <a href="#books" class="rail-link"><i class="fa fa-book"></i></a>
+      <a href="#podcasts" class="rail-link"><i class="fa fa-podcast"></i></a>
     </aside>
 
     <section class="stage">
@@ -38,20 +91,58 @@
         <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">Menu</button>
 
         <ul class="nav-links" id="navLinks">
-          <li><a href="#home">Home</a></li>
-          <li><a href="#songs">Songs</a></li>
-          <li><a href="artists.html">Artists</a></li>
-          <li><a href="albums.html">Albums</a></li>
-          <li><a href="#books">Books</a></li>
-          <li><a href="#podcasts">Podcasts</a></li>
+          <li><a href="#home"><i class="fa fa-home"></i>Home</a></li>
+          <li><a href="#songs"><i class="fa fa-music"></i>Songs</a></li>
+          <li><a href="player.html"><i class="fa fa-play-circle"></i>Player</a></li>
+          <li><a href="artists.html"><i class="fa fa-user"></i>Artists</a></li>
+          <li><a href="albums.html"><i class="fa fa-compact-disc"></i>Albums</a></li>
+          <li><a href="#books"><i class="fa fa-book"></i>Books</a></li>
+          <li><a href="#podcasts"><i class="fa fa-podcast"></i>Podcasts</a></li>
+          <li><button class="logout-btn" onclick="logoutUser()"><i class="fa fa-sign-out"></i>Logout</button></li>
         </ul>
       </header>
 
+      <section class="status-ribbon" aria-label="Platform status">
+        <article class="status-tile">
+          <p class="status-label">Catalog Mode</p>
+          <h3>Adaptive Source Routing</h3>
+          <p>Switch between local library, archive full tracks, and iTunes previews in one control layer.</p>
+        </article>
+        <article class="status-tile">
+          <p class="status-label">Playback System</p>
+          <h3>Studio Player Pipeline</h3>
+          <p>Real-time queueing, trim/cut editor, waveform timeline, and quick transport controls.</p>
+        </article>
+        <article class="status-tile">
+          <p class="status-label">Discovery Stack</p>
+          <h3>Smart Filter Matrix</h3>
+          <p>Language, quality, format, duration, and search are combined for fast narrowing.</p>
+        </article>
+      </section>
+
       <section class="hero-panel">
-        <div>
+        <div class="hero-copy-block">
           <p class="overline">Premium Dashboard</p>
-          <h2>Listen with a calmer, richer visual experience.</h2>
-          <p class="hero-copy">Inspired by the luxury, minimal rhythm of Vynora-style interfaces with elegant contrast and restrained accents.</p>
+          <h2>Advanced audio workspace for discovery and focused playback.</h2>
+          <p class="hero-copy">A command-style music interface that blends rich catalog browsing, focused filtering, and studio-grade playback tools on one page.</p>
+          <div class="hero-actions">
+            <a href="#songs" class="hero-action-btn">Browse Songs</a>
+            <a href="player.html" class="hero-action-btn hero-action-btn-secondary">Open Player Page</a>
+          </div>
+          <div class="hero-kpis" aria-label="Dashboard metrics">
+            <div class="hero-kpi">
+              <p class="kpi-label">Sources</p>
+              <p class="kpi-value">3</p>
+            </div>
+            <div class="hero-kpi">
+              <p class="kpi-label">Media Zones</p>
+              <p class="kpi-value">5</p>
+            </div>
+            <div class="hero-kpi">
+              <p class="kpi-label">Editor</p>
+              <p class="kpi-value">Realtime</p>
+            </div>
+          </div>
         </div>
 
         <div class="search-wrap">
@@ -241,7 +332,7 @@
     <audio id="audioPlayer"></audio>
   </footer>
 
-  <script src="script.js"></script>
+  <script src="script.js?v=20260301f"></script>
   <script src="sw-register.js"></script>
 </body>
 </html>

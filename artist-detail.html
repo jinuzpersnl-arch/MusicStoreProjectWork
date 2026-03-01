@@ -4,10 +4,21 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Artist Songs - Music Store</title>
+  <meta name="theme-color" content="#0b1013" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="manifest" href="manifest.webmanifest" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="library-pages.css" />
+  <link rel="stylesheet" href="library-pages.css?v=20260301b" />
+  <style>body{visibility:hidden;}</style>
+  <!-- auth check -->
+  <script src="auth-script.js"></script>
+  <script>
+    ensureAuthenticated();
+    document.addEventListener('DOMContentLoaded', function(){ document.body.style.visibility='visible'; });
+  </script>
 </head>
 <body data-page="artist-detail">
   <main class="page">
@@ -18,12 +29,14 @@
         <p class="sub" id="status"></p>
       </div>
       <a class="back-link" href="artists.html">Back To Artists</a>
+      <a class="back-link" href="#" onclick="logoutUser()">Logout</a>
     </header>
 
     <section class="song-list" id="songList"></section>
   </main>
 
-  <script src="local-library.js"></script>
-  <script src="library-pages.js"></script>
+  <script src="local-library.js?v=20260301b"></script>
+  <script src="library-pages.js?v=20260301b"></script>
+  <script src="sw-register.js"></script>
 </body>
 </html>

@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Music Store Player</title>
+  <meta name="theme-color" content="#0b1013" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="songs/images/albums/default-album.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- FontAwesome icons for UI -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-pq3oY2c13nLZTllT+zTL8CqvGjYH6G+j6lJzi10BGSAdoo6gWQBaIj++ImQxGc1dQc5sKXc5teLoNU0f4rOiUg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <!-- anime.js for advanced animations -->
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+  <link rel="stylesheet" href="style.css?v=20260301b" />
+  <style>body{visibility:hidden;}</style>
+  <!-- require login for player page -->
+  <script src="auth-script.js"></script>
+  <script>
+    ensureAuthenticated();
+    document.addEventListener('DOMContentLoaded', function(){ document.body.style.visibility='visible'; });
+  </script>
+</head>
+<body data-page="player">
+  <div class="ambient" aria-hidden="true"></div>
+
+  <main id="home" class="shell shell-advanced">
+    <aside class="side-rail" aria-label="Quick links">
+      <div class="rail-brand">MS</div>
+      <a href="index.html" class="rail-link"><i class="fa fa-home"></i></a>
+      <a href="#songs" class="rail-link"><i class="fa fa-music"></i></a>
+      <a href="player.html" class="rail-link"><i class="fa fa-play-circle"></i></a>
+      <a href="artists.html" class="rail-link"><i class="fa fa-user"></i></a>
+      <a href="albums.html" class="rail-link"><i class="fa fa-compact-disc"></i></a>
+      <a href="#books" class="rail-link"><i class="fa fa-book"></i></a>
+      <a href="#podcasts" class="rail-link"><i class="fa fa-podcast"></i></a>
+    </aside>
+
+    <section class="stage">
+      <header class="topbar">
+        <div class="brand-wrap">
+          <p class="overline">Curated Listening</p>
+          <h1 class="brand">Music Store</h1>
+        </div>
+
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">Menu</button>
+
+        <ul class="nav-links" id="navLinks">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="#songs">Songs</a></li>
+          <li><a href="player.html">Player</a></li>
+          <li><a href="artists.html">Artists</a></li>
+          <li><a href="albums.html">Albums</a></li>
+          <li><a href="#books">Books</a></li>
+          <li><a href="#podcasts">Podcasts</a></li>
+          <li><button class="logout-btn" onclick="logoutUser()">Logout</button></li>
+        </ul>
+      </header>
+
+      <section class="status-ribbon" aria-label="Platform status">
+        <article class="status-tile">
+          <p class="status-label">Catalog Mode</p>
+          <h3>Adaptive Source Routing</h3>
+          <p>Switch between local library, archive full tracks, and iTunes previews in one control layer.</p>
+        </article>
+        <article class="status-tile">
+          <p class="status-label">Playback System</p>
+          <h3>Studio Player Pipeline</h3>
+          <p>Real-time queueing, trim/cut editor, waveform timeline, and quick transport controls.</p>
+        </article>
+        <article class="status-tile">
+          <p class="status-label">Discovery Stack</p>
+          <h3>Smart Filter Matrix</h3>
+          <p>Language, quality, format, duration, and search are combined for fast narrowing.</p>
+        </article>
+      </section>
+
+      <section class="hero-panel">
+        <div class="hero-copy-block">
+          <p class="overline">Premium Dashboard</p>
+          <h2>Advanced audio workspace for discovery and focused playback.</h2>
+          <p class="hero-copy">A command-style music interface that blends rich catalog browsing, focused filtering, and studio-grade playback tools on one page.</p>
+          <div class="hero-actions">
+            <a href="#songs" class="hero-action-btn">Browse Songs</a>
+            <a href="player.html" class="hero-action-btn hero-action-btn-secondary">Open Player Page</a>
+          </div>
+          <div class="hero-kpis" aria-label="Dashboard metrics">
+            <div class="hero-kpi">
+              <p class="kpi-label">Sources</p>
+              <p class="kpi-value">3</p>
+            </div>
+            <div class="hero-kpi">
+              <p class="kpi-label">Media Zones</p>
+              <p class="kpi-value">5</p>
+            </div>
+            <div class="hero-kpi">
+              <p class="kpi-label">Editor</p>
+              <p class="kpi-value">Realtime</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="search-wrap">
+          <label for="searchInput">Search Music + Book Content</label>
+          <input type="text" id="searchInput" placeholder="Search songs, artists, albums, books, podcasts..." />
+          <div class="language-tools">
+            <label for="languageSelect">Language</label>
+            <select id="languageSelect" aria-label="Select language">
+              <option value="global">Global</option>
+              <option value="english">English</option>
+              <option value="tamil">Tamil</option>
+              <option value="malayalam">Malayalam</option>
+              <option value="hindi">Hindi</option>
+              <option value="telugu">Telugu</option>
+            </select>
+            <label for="sourceSelect">Audio Source</label>
+            <select id="sourceSelect" aria-label="Select audio source">
+              <option value="local">Local Library (Your Uploads)</option>
+              <option value="archive">Full Tracks (Archive)</option>
+              <option value="itunes">iTunes Preview (30s)</option>
+            </select>
+            <label for="qualitySelect">Preferred Quality</label>
+            <select id="qualitySelect" aria-label="Select preferred quality">
+              <option value="any">Any</option>
+              <option value="lossless">Lossless</option>
+              <option value="high">High</option>
+              <option value="standard">Standard</option>
+            </select>
+            <label for="formatSelect">Preferred Format</label>
+            <select id="formatSelect" aria-label="Select preferred format">
+              <option value="any">Any</option>
+              <option value="flac">FLAC</option>
+              <option value="mp3">MP3</option>
+              <option value="ogg">OGG</option>
+              <option value="wav">WAV</option>
+            </select>
+            <label for="minDurationInput">Minimum Duration (minutes)</label>
+            <input type="number" id="minDurationInput" min="0" step="0.5" value="1" aria-label="Minimum track duration in minutes" />
+            <button type="button" id="resetFiltersBtn" class="reset-filters-btn">Reset Filters</button>
+            <div class="lang-chips" id="langChips">
+              <button type="button" data-lang="english">English</button>
+              <button type="button" data-lang="tamil">Tamil</button>
+              <button type="button" data-lang="malayalam">Malayalam</button>
+            </div>
+          </div>
+          <p class="search-hint" id="apiStatus">Loading music data...</p>
+        </div>
+      </section>
+
+      <div class="content-grid">
+        <section id="songs" class="content-section panel songs-panel">
+          <div class="section-title-row">
+            <h2>Songs</h2>
+          </div>
+          <div id="songsGrid" class="grid"></div>
+        </section>
+
+        <section id="artists" class="content-section panel artists-panel">
+          <div class="section-title-row">
+            <h2>Artists</h2>
+            <a href="artists.html" class="section-link">Open Artists Page</a>
+          </div>
+          <div id="artistsGrid" class="grid"></div>
+        </section>
+
+        <section id="albums" class="content-section panel albums-panel">
+          <div class="section-title-row">
+            <h2>Albums</h2>
+            <a href="albums.html" class="section-link">Open Albums Page</a>
+          </div>
+          <div id="albumsGrid" class="grid"></div>
+        </section>
+
+        <section id="books" class="content-section panel books-panel">
+          <div class="section-title-row">
+            <h2>Books</h2>
+          </div>
+          <div id="booksGrid" class="grid"></div>
+        </section>
+
+        <section id="podcasts" class="content-section panel podcasts-panel">
+          <div class="section-title-row">
+            <h2>Podcasts</h2>
+          </div>
+          <div id="podcastsGrid" class="grid"></div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <footer class="player-panel">
+    <div class="player-layout">
+      <div class="now-playing">
+        <div class="disc-art" aria-hidden="true"></div>
+        <div>
+          <p class="caption">Now Playing</p>
+          <h3 id="nowPlayingTitle">No track selected</h3>
+          <p id="nowPlayingMeta">Choose a song or podcast to start.</p>
+        </div>
+      </div>
+
+      <div class="player-controls">
+        <div class="buttons">
+          <button id="prevBtn" aria-label="Previous track">Prev</button>
+          <button id="playBtn" class="primary-btn" aria-label="Play current track">Play</button>
+          <button id="pauseBtn" aria-label="Pause current track">Pause</button>
+          <button id="nextBtn" aria-label="Next track">Next</button>
+        </div>
+
+        <div class="progress-wrap">
+          <span id="currentTime">0:00</span>
+          <input type="range" id="progressBar" min="0" max="100" value="0" aria-label="Track progress" />
+          <span id="duration">0:00</span>
+        </div>
+
+        <div class="editor-panel" aria-label="Free audio editor">
+          <div class="editor-hero">
+            <div class="editor-chip-stack">
+              <p class="editor-title">Free Audio Editor (Trim/Cut)</p>
+              <div class="editor-chips">
+                <span class="editor-chip">No Premium Lock</span>
+                <span class="editor-chip">Realtime</span>
+                <span class="editor-chip">Mobile Ready</span>
+              </div>
+            </div>
+            <button id="toggleEditorBtn" type="button" class="editor-toggle-btn" aria-expanded="false">Open Editor</button>
+            <div class="editor-eq-card" aria-hidden="true">
+              <span class="eq-bar"></span>
+              <span class="eq-bar"></span>
+              <span class="eq-bar"></span>
+              <span class="eq-bar"></span>
+              <span class="eq-bar"></span>
+              <span class="eq-bar"></span>
+              <span class="eq-bar"></span>
+            </div>
+          </div>
+          <div class="waveform-wrap">
+            <div class="editor-preview-card">
+              <img id="editorPreviewImage" class="editor-preview-image" src="songs/images/albums/default-album.svg" alt="Track artwork" />
+              <div class="editor-preview-copy">
+                <p id="editorPreviewTitle">No track selected</p>
+                <p id="editorTimecode">00:00.000 / 00:00.000</p>
+              </div>
+            </div>
+            <div class="timeline-lanes">
+              <canvas id="waveformCanvas" width="900" height="120" aria-label="Audio waveform editor"></canvas>
+              <canvas id="waveformAuxCanvasA" width="900" height="44" aria-hidden="true"></canvas>
+              <canvas id="waveformAuxCanvasB" width="900" height="44" aria-hidden="true"></canvas>
+            </div>
+            <div class="waveform-labels">
+              <span id="waveStartLabel">Start: 0:00</span>
+              <span id="waveSelectionLabel">Selected: 0:00</span>
+              <span id="waveEndLabel">End: 0:00</span>
+            </div>
+          </div>
+          <div class="effects-panel" aria-label="Audio effects">
+            <button id="noiseReductionBtn" type="button" class="effect-card" aria-pressed="false">
+              <span class="effect-name">Noise Reduction</span>
+              <span class="effect-note">Cleaner background</span>
+            </button>
+            <button id="autocorrectBtn" type="button" class="effect-card" aria-pressed="false">
+              <span class="effect-name">Autocorrect</span>
+              <span class="effect-note">Smoother dynamics</span>
+            </button>
+            <button id="bassBoostBtn" type="button" class="effect-card" aria-pressed="false">
+              <span class="effect-name">Bass Boost</span>
+              <span class="effect-note">More low-end punch</span>
+            </button>
+          </div>
+          <div class="editor-grid">
+            <label for="trimStartInput">Start (sec)</label>
+            <input id="trimStartInput" type="number" min="0" step="0.1" value="0" />
+            <label for="trimEndInput">End (sec)</label>
+            <input id="trimEndInput" type="number" min="0" step="0.1" value="0" />
+          </div>
+          <div class="editor-buttons">
+            <button id="setTrimStartBtn" type="button">Set Start</button>
+            <button id="setTrimEndBtn" type="button">Set End</button>
+            <button id="previewTrimBtn" type="button">Preview Trim</button>
+            <button id="downloadTrimBtn" type="button">Download Trim</button>
+            <button id="downloadCutBtn" type="button">Download Cut</button>
+          </div>
+          <p id="editorStatus" class="editor-status">Load any track, set range, and edit for free.</p>
+        </div>
+      </div>
+    </div>
+    <audio id="audioPlayer"></audio>
+  </footer>
+
+  <script src="script.js?v=20260301b"></script>
+  <script src="sw-register.js"></script>
+</body>
+</html>

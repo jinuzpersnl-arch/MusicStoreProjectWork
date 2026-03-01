@@ -1,25 +1,337 @@
-{
-  "songs": [
-    {
-      "id": "local-1",
-      "title": "Replace With Your Song",
-      "artist": "Your Artist Name",
-      "album": "Your Album",
-      "duration": "3:20",
-      "file": "albums/1-tamil/your-song-file.mp3",
-      "image": "images/albums/default-album.svg",
-      "artistImage": "images/artists/default-artist.svg",
-      "albumImage": "images/albums/default-album.svg"
-    }
-  ],
-  "podcasts": [
-    {
-      "id": "pod-1",
-      "title": "Replace Podcast Episode",
-      "host": "Host Name",
-      "episode": "Episode 1",
-      "file": "podcasts/1-tamil/podcast-episode-1.mp3",
-      "image": "images/podcasts/default-podcast.svg"
-    }
-  ]
+﻿{
+    "songs":  [
+                  {
+                      "id":  "local-1",
+                      "title":  "Abinaya",
+                      "artist":  "Mugen Rao",
+                      "album":  "Tamil Uploads",
+                      "duration":  "3:30",
+                      "file":  "albums/1-tamil/Abinaya - Mugen Rao - User 333894662 - SoundLoadMate.com.mp3",
+                      "image":  "images/albums/default-album.svg",
+                      "artistImage":  "images/artists/default-artist.svg",
+                      "albumImage":  "images/albums/default-album.svg"
+                  },
+                  {
+                      "id":  "local-2",
+                      "title":  "Ailesa",
+                      "artist":  "(Single)",
+                      "album":  "Tamil Uploads",
+                      "duration":  "3:30",
+                      "file":  "albums/1-tamil/Ailesa - (Single) - Shakti Sivamani - SoundLoadMate.com.mp3",
+                      "image":  "images/albums/default-album.svg",
+                      "artistImage":  "images/artists/default-artist.svg",
+                      "albumImage":  "images/albums/default-album.svg"
+                  },
+                  {
+                      "id":  "local-3",
+                      "title":  "Chellakuttiye [ Official Music Video ] AVASTHA  Srinish Aravind  Pearle Maaney  Jecin George",
+                      "artist":  "Rameez Rami",
+                      "album":  "Tamil Uploads",
+                      "duration":  "3:30",
+                      "file":  "albums/1-tamil/Chellakuttiye [ Official Music Video ] AVASTHA  Srinish Aravind  Pearle Maaney  Jecin George - Rameez Rami - SoundLoadMate.com.mp3",
+                      "image":  "images/albums/default-album.svg",
+                      "artistImage":  "images/artists/default-artist.svg",
+                      "albumImage":  "images/albums/default-album.svg"
+                  },
+                  {
+                      "id":  "local-4",
+                      "title":  "Club Le Mabbu Le Hip hop tamizha",
+                      "artist":  "Tamil RAPPA",
+                      "album":  "Tamil Uploads",
+                      "duration":  "3:30",
+                      "file":  "albums/1-tamil/Club Le Mabbu Le Hip hop tamizha - Tamil RAPPA - SoundLoadMate.com.mp3",
+                      "image":  "images/albums/default-album.svg",
+                      "artistImage":  "images/artists/default-artist.svg",
+                      "albumImage":  "images/albums/default-album.svg"
+                  },
+                  {
+                      "id":  "local-5",
+                      "title":  "Dhilip Varman- Ennavaley",
+                      "artist":  "MeeLvin ZeroEight Paiyan",
+                      "album":  "Tamil Uploads",
+                      "duration":  "3:30",
+                      "file":  "albums/1-tamil/Dhilip Varman- Ennavaley - MeeLvin ZeroEight Paiyan - SoundLoadMate.com.mp3",
+                      "image":  "images/albums/default-album.svg",
+                      "artistImage":  "images/artists/default-artist.svg",
+                      "albumImage":  "images/albums/default-album.svg"
+                  },
+                  {
+                      "id":  "local-6",
+                      "title":  "En Rant Ah Konjam Kelu",
+                      "artist":  "kapilde4444",
+                      "album":  "Tamil Uploads",
+                      "duration":  "3:30",
+                      "file":  "albums/1-tamil/En Rant Ah Konjam Kelu - kapilde4444 - SoundLoadMate.com.mp3",
+                      "image":  "images/albums/default-album.svg",
+                      "artistImage":  "images/artists/default-artist.svg",
+                      "albumImage":  "images/albums/default-album.svg"
+                  },
+                  {
+                      "id":  "local-7",
+                      "title":  "Enjoy Enjaami (Dhee ft. Arivu)",
+                      "artist":  "Ribin Richard Mix",
+                      "album":  "Tamil Uploads",
+                      "duration":  "3:30",
+                      "file":  "albums/1-tamil/Enjoy Enjaami (Dhee ft. Arivu) - Ribin Richard Mix - Ribin Richard - SoundLoadMate.com.mp3",
+                      "image":  "images/albums/default-album.svg",
+                      "artistImage":  "images/artists/default-artist.svg",
+                      "albumImage":  "images/albums/default-album.svg"
+                  },
+                  {
+                      "id":  "local-8",
+                      "title":  "Ennai Kollathey Lyrical  Video  Geethaiyin Raadhai  Ztish  Shalini Balasundaram",
+                      "artist":  "vino sam varghese",
+                      "album":  "Tamil Uploads",
+                      "duration":  "3:30",
+                      "file":  "albums/1-tamil/Ennai Kollathey Lyrical  Video  Geethaiyin Raadhai  Ztish  Shalini Balasundaram - vino sam varghese - SoundLoadMate.com.mp3",
+                      "image":  "images/albums/default-album.svg",
+                      "artistImage":  "images/artists/default-artist.svg",
+                      "albumImage":  "images/albums/default-album.svg"
+                  },
+                  {
+                      "id":  "local-9",
+                      "title":  "Havoc Mathan  PainKiller Remix",
+                      "artist":  "BACKTOBASIC",
+                      "album":  "Tamil Uploads",
+                      "duration":  "3:30",
+                      "file":  "albums/1-tamil/Havoc Mathan  PainKiller Remix - BACKTOBASIC - SoundLoadMate.com.mp3",
+                      "image":  "images/albums/default-album.svg",
+                      "artistImage":  "images/artists/default-artist.svg",
+                      "albumImage":  "images/albums/default-album.svg"
+                  },
+                  {
+                      "id":  "local-10",
+                      "title":  "Hiphop Tamizha",
+                      "artist":  "Quarantine \u0026 Chill Official.mp3",
+                      "album":  "Tamil Uploads",
+                      "duration":  "3:30",
+                      "file":  "albums/1-tamil/Hiphop Tamizha - Quarantine \u0026 Chill Official.mp3 - BLACK  🌹 - SoundLoadMate.com.mp3",
+                      "image":  "images/albums/default-album.svg",
+                      "artistImage":  "images/artists/default-artist.svg",
+                      "albumImage":  "images/albums/default-album.svg"
+                  },
+                  {
+                      "id":  "local-11",
+                      "title":  "Joshua Aaron",
+                      "artist":  "Caramel Kannale ft. Shilvi.mp3",
+                      "album":  "Tamil Uploads",
+                      "duration":  "3:30",
+                      "file":  "albums/1-tamil/Joshua Aaron - Caramel Kannale ft. Shilvi.mp3 - RohiDh Kingston Ssz - SoundLoadMate.com.mp3",
+                      "image":  "images/albums/default-album.svg",
+                      "artistImage":  "images/artists/default-artist.svg",
+                      "albumImage":  "images/albums/default-album.svg"
+                  },
+                  {
+                      "id":  "local-12",
+                      "title":  "KADHAL ONDRU KANDEN",
+                      "artist":  "KANNA VEESI ORGINAL SOUND TRACK.(Rio Raj) (Ashwin Kumar)  (Nakshathra Nagesh)",
+                      "album":  "Tamil Uploads",
+                      "duration":  "3:30",
+                      "file":  "albums/1-tamil/KADHAL ONDRU KANDEN - KANNA VEESI ORGINAL SOUND TRACK.(Rio Raj) (Ashwin Kumar)  (Nakshathra Nagesh) - GJ - SoundLoadMate.com.mp3",
+                      "image":  "images/albums/default-album.svg",
+                      "artistImage":  "images/artists/default-artist.svg",
+                      "albumImage":  "images/albums/default-album.svg"
+                  },
+                  {
+                      "id":  "local-13",
+                      "title":  "Kadhalan",
+                      "artist":  "Havoc Mathan Ft. Havoc Naven",
+                      "album":  "Tamil Uploads",
+                      "duration":  "3:30",
+                      "file":  "albums/1-tamil/Kadhalan - Havoc Mathan Ft. Havoc Naven - DJ Camp BELL - SoundLoadMate.com.mp3",
+                      "image":  "images/albums/default-album.svg",
+                      "artistImage":  "images/artists/default-artist.svg",
+                      "albumImage":  "images/albums/default-album.svg"
+                  },
+                  {
+                      "id":  "local-14",
+                      "title":  "Katthi",
+                      "artist":  "Santesh Psycho.Unit",
+                      "album":  "Tamil Uploads",
+                      "duration":  "3:30",
+                      "file":  "albums/1-tamil/Katthi - Santesh Psycho.Unit - DjRevvy Thr Raaga Clubmix - SoundLoadMate.com.mp3",
+                      "image":  "images/albums/default-album.svg",
+                      "artistImage":  "images/artists/default-artist.svg",
+                      "albumImage":  "images/albums/default-album.svg"
+                  },
+                  {
+                      "id":  "local-15",
+                      "title":  "Kovai Gethu  Hiphop Tamizha",
+                      "artist":  "Senthuran",
+                      "album":  "Tamil Uploads",
+                      "duration":  "3:30",
+                      "file":  "albums/1-tamil/Kovai Gethu  Hiphop Tamizha - Senthuran - SoundLoadMate.com.mp3",
+                      "image":  "images/albums/default-album.svg",
+                      "artistImage":  "images/artists/default-artist.svg",
+                      "albumImage":  "images/albums/default-album.svg"
+                  },
+                  {
+                      "id":  "local-16",
+                      "title":  "Maalai Pozhudhin Mayakathilaey",
+                      "artist":  "Oh Baby Girl Video  Aari, Shubha  Achu.mp3",
+                      "album":  "Tamil Uploads",
+                      "duration":  "3:30",
+                      "file":  "albums/1-tamil/Maalai Pozhudhin Mayakathilaey - Oh Baby Girl Video  Aari, Shubha  Achu.mp3 - SHATTEREDVEINS - SoundLoadMate.com.mp3",
+                      "image":  "images/albums/default-album.svg",
+                      "artistImage":  "images/artists/default-artist.svg",
+                      "albumImage":  "images/albums/default-album.svg"
+                  },
+                  {
+                      "id":  "local-17",
+                      "title":  "Mai Potta Kannala feat. Surendran EJ,U.Dheeran",
+                      "artist":  "Surendran Ej",
+                      "album":  "Tamil Uploads",
+                      "duration":  "3:30",
+                      "file":  "albums/1-tamil/Mai Potta Kannala feat. Surendran EJ,U.Dheeran - Surendran Ej - SoundLoadMate.com.mp3",
+                      "image":  "images/albums/default-album.svg",
+                      "artistImage":  "images/artists/default-artist.svg",
+                      "albumImage":  "images/albums/default-album.svg"
+                  },
+                  {
+                      "id":  "local-18",
+                      "title":  "Manasara Sollu",
+                      "artist":  "Teejay",
+                      "album":  "Tamil Uploads",
+                      "duration":  "3:30",
+                      "file":  "albums/1-tamil/Manasara Sollu - Teejay - BGM - Damien Manuel - SoundLoadMate.com.mp3",
+                      "image":  "images/albums/default-album.svg",
+                      "artistImage":  "images/artists/default-artist.svg",
+                      "albumImage":  "images/albums/default-album.svg"
+                  },
+                  {
+                      "id":  "local-19",
+                      "title":  "Muttu Muttu",
+                      "artist":  "TeeJay Ft MC SAI \u0026 SriMathumitha [Official Music Video]",
+                      "album":  "Tamil Uploads",
+                      "duration":  "3:30",
+                      "file":  "albums/1-tamil/Muttu Muttu - TeeJay Ft MC SAI \u0026 SriMathumitha [Official Music Video] - Arun Muthuraman - SoundLoadMate.com.mp3",
+                      "image":  "images/albums/default-album.svg",
+                      "artistImage":  "images/artists/default-artist.svg",
+                      "albumImage":  "images/albums/default-album.svg"
+                  },
+                  {
+                      "id":  "local-20",
+                      "title":  "Naan Kudikka Poren-Ratty Adhiththan(feat. Sahi Siva)",
+                      "artist":  "Ratty Adhiththan",
+                      "album":  "Tamil Uploads",
+                      "duration":  "3:30",
+                      "file":  "albums/1-tamil/Naan Kudikka Poren-Ratty Adhiththan(feat. Sahi Siva) - Ratty Adhiththan - SoundLoadMate.com.mp3",
+                      "image":  "images/albums/default-album.svg",
+                      "artistImage":  "images/artists/default-artist.svg",
+                      "albumImage":  "images/albums/default-album.svg"
+                  },
+                  {
+                      "id":  "local-21",
+                      "title":  "Neeye Oli w Navz-47 \u0026 Santhosh Narayanan",
+                      "artist":  "SVDP",
+                      "album":  "Tamil Uploads",
+                      "duration":  "3:30",
+                      "file":  "albums/1-tamil/Neeye Oli w Navz-47 \u0026 Santhosh Narayanan - SVDP - SoundLoadMate.com.mp3",
+                      "image":  "images/albums/default-album.svg",
+                      "artistImage":  "images/artists/default-artist.svg",
+                      "albumImage":  "images/albums/default-album.svg"
+                  },
+                  {
+                      "id":  "local-22",
+                      "title":  "Nenjinile Rebirth",
+                      "artist":  "Chris G. Ft.  MC SAI \u0026 Sahi Siva  Official  Song",
+                      "album":  "Tamil Uploads",
+                      "duration":  "3:30",
+                      "file":  "albums/1-tamil/Nenjinile Rebirth - Chris G. Ft.  MC SAI \u0026 Sahi Siva  Official  Song - Akshay Krishna - SoundLoadMate.com.mp3",
+                      "image":  "images/albums/default-album.svg",
+                      "artistImage":  "images/artists/default-artist.svg",
+                      "albumImage":  "images/albums/default-album.svg"
+                  },
+                  {
+                      "id":  "local-23",
+                      "title":  "Pogiren Thannale Indru  mugen rao  eascinemas",
+                      "artist":  "EAS CINEMAS { Favourite }",
+                      "album":  "Tamil Uploads",
+                      "duration":  "3:30",
+                      "file":  "albums/1-tamil/Pogiren Thannale Indru  mugen rao  eascinemas - EAS CINEMAS { Favourite } - SoundLoadMate.com.mp3",
+                      "image":  "images/albums/default-album.svg",
+                      "artistImage":  "images/artists/default-artist.svg",
+                      "albumImage":  "images/albums/default-album.svg"
+                  },
+                  {
+                      "id":  "local-24",
+                      "title":  "Ponnira Maalai",
+                      "artist":  "Siennor",
+                      "album":  "Tamil Uploads",
+                      "duration":  "3:30",
+                      "file":  "albums/1-tamil/Ponnira Maalai  - Siennor - siennorofficial - SoundLoadMate.com.mp3",
+                      "image":  "images/albums/default-album.svg",
+                      "artistImage":  "images/artists/default-artist.svg",
+                      "albumImage":  "images/albums/default-album.svg"
+                  },
+                  {
+                      "id":  "local-25",
+                      "title":  "Sid Sriram",
+                      "artist":  "Po Po Yen (Where\u0027s My Face Remix)",
+                      "album":  "Tamil Uploads",
+                      "duration":  "3:30",
+                      "file":  "albums/1-tamil/Sid Sriram - Po Po Yen (Where\u0027s My Face Remix) - Where\u0027s My Face - SoundLoadMate.com.mp3",
+                      "image":  "images/albums/default-album.svg",
+                      "artistImage":  "images/artists/default-artist.svg",
+                      "albumImage":  "images/albums/default-album.svg"
+                  },
+                  {
+                      "id":  "local-26",
+                      "title":  "Tamil  Shades of Kadhal  Cover",
+                      "artist":  "Jerish",
+                      "album":  "Tamil Uploads",
+                      "duration":  "3:30",
+                      "file":  "albums/1-tamil/Tamil  Shades of Kadhal  Cover - Jerish - SoundLoadMate.com.mp3",
+                      "image":  "images/albums/default-album.svg",
+                      "artistImage":  "images/artists/default-artist.svg",
+                      "albumImage":  "images/albums/default-album.svg"
+                  },
+                  {
+                      "id":  "local-27",
+                      "title":  "Thean Kudika",
+                      "artist":  "(feat. Pragathi)",
+                      "album":  "Tamil Uploads",
+                      "duration":  "3:30",
+                      "file":  "albums/1-tamil/Thean Kudika - (feat. Pragathi) - Teejay Melody - SoundLoadMate.com.mp3",
+                      "image":  "images/albums/default-album.svg",
+                      "artistImage":  "images/artists/default-artist.svg",
+                      "albumImage":  "images/albums/default-album.svg"
+                  },
+                  {
+                      "id":  "local-28",
+                      "title":  "Usuraiya Tholaichaen",
+                      "artist":  "Single",
+                      "album":  "Tamil Uploads",
+                      "duration":  "3:30",
+                      "file":  "albums/1-tamil/Usuraiya Tholaichaen - Single - Stephen Zechariah - Pragathi Guruprasad - Suriavelan - jasmine - SoundLoadMate.com.mp3",
+                      "image":  "images/albums/default-album.svg",
+                      "artistImage":  "images/artists/default-artist.svg",
+                      "albumImage":  "images/albums/default-album.svg"
+                  },
+                  {
+                      "id":  "local-29",
+                      "title":  "Vaadi Pulla Vaadi (Hiphop Tamizha) Cover Song By Voranzov",
+                      "artist":  "Dj voranzov",
+                      "album":  "Tamil Uploads",
+                      "duration":  "3:30",
+                      "file":  "albums/1-tamil/Vaadi Pulla Vaadi (Hiphop Tamizha) Cover Song By Voranzov - Dj voranzov - SoundLoadMate.com.mp3",
+                      "image":  "images/albums/default-album.svg",
+                      "artistImage":  "images/artists/default-artist.svg",
+                      "albumImage":  "images/albums/default-album.svg"
+                  },
+                  {
+                      "id":  "local-30",
+                      "title":  "Weightu song_Thamizhi movie SanGan, Hip Hop Thamizah",
+                      "artist":  "𝓓𝓸𝓶𝓲𝓷𝓲𝓬 𝓐𝓷𝓭𝓻𝓮𝓪 𝓢𝓸𝓵𝓸𝓶𝓸𝓷 𝓡𝓪𝓳",
+                      "album":  "Tamil Uploads",
+                      "duration":  "3:30",
+                      "file":  "albums/1-tamil/Weightu song_Thamizhi movie SanGan, Hip Hop Thamizah - 𝓓𝓸𝓶𝓲𝓷𝓲𝓬 𝓐𝓷𝓭𝓻𝓮𝓪 𝓢𝓸𝓵𝓸𝓶𝓸𝓷 𝓡𝓪𝓳 - SoundLoadMate.com.mp3",
+                      "image":  "images/albums/default-album.svg",
+                      "artistImage":  "images/artists/default-artist.svg",
+                      "albumImage":  "images/albums/default-album.svg"
+                  }
+              ],
+    "podcasts":  [
+
+                 ]
 }

@@ -27,6 +27,8 @@ body {
     radial-gradient(780px 540px at 110% 120%, #2a1a0ca6 0%, transparent 64%),
     linear-gradient(132deg, var(--bg-0), var(--bg-1) 48%, var(--bg-2));
   padding: 1rem;
+  /* avoid any horizontal scrolling on the entire page */
+  overflow-x: hidden;
 }
 
 .page {
@@ -132,6 +134,9 @@ body {
 .song-list {
   display: grid;
   gap: 0.75rem;
+  /* keep the song container from overflowing horizontally */
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .song-item {
@@ -139,10 +144,17 @@ body {
   border: 1px solid var(--line-1);
   border-radius: 10px;
   padding: 0.75rem;
+  /* force wrapping so long titles don’t stretch the item */
+  word-break: break-word;
+  overflow-wrap: break-word;
+  width: 100%;
 }
 
 .song-item h4 {
   margin: 0;
+  /* ensure the heading wraps instead of overflowing */
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .song-meta {
