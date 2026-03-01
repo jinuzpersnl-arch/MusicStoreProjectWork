@@ -1622,6 +1622,14 @@ body {
   font-size: 0.75rem;
   letter-spacing: 0.02em;
   text-transform: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.rail-link i {
+  font-size: 1rem;
+  flex-shrink: 0;
 }
 
 .stage {
