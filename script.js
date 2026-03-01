@@ -485,6 +485,31 @@ function setEditorBusy(busy, button = null) {
 
 function setEditorCollapsed(collapsed) {
   if (!playerPanel) return;
+  // animate the height of the editor panel if anime available
+  const panel = playerPanel.querySelector('.editor-panel');
+  if (panel && window.anime) {
+    const startHeight = panel.scrollHeight;
+    panel.style.overflow = 'hidden';
+    if (collapsed) {
+      anime({
+        targets: panel,
+        height: [startHeight, 0],
+        duration: 500,
+        easing: 'easeInOutQuad',
+        complete() { panel.style.height = ''; panel.style.overflow = ''; }
+      });
+    } else {
+      panel.style.height = '0px';
+      anime({
+        targets: panel,
+        height: [0, panel.scrollHeight],
+        duration: 500,
+        easing: 'easeInOutQuad',
+        complete() { panel.style.height = ''; panel.style.overflow = ''; }
+      });
+    }
+  }
+
   playerPanel.classList.toggle("editor-collapsed", collapsed);
   if (toggleEditorBtn) {
     toggleEditorBtn.textContent = collapsed ? "Open Editor" : "Hide Editor";
@@ -748,6 +773,22 @@ function drawWaveform() {
     drawWaveformLane(waveformAuxCanvasA, []);
     drawWaveformLane(waveformAuxCanvasB, []);
     return;
+  }
+
+  // make sure canvas is visible smoothly
+  if (waveformCanvas) {
+    waveformCanvas.style.opacity = 0;
+    if (window.anime) {
+      anime({
+        targets: waveformCanvas,
+        opacity: [0,1],
+        duration: 800,
+        easing: 'easeOutQuad'
+      });
+    } else {
+      waveformCanvas.style.transition = 'opacity 0.8s ease';
+      waveformCanvas.style.opacity = 1;
+    }
   }
 
   const duration = getActiveDuration() || 1;
@@ -1165,6 +1206,16 @@ function rebuildPlayableQueue() {
   if (appState.currentTrackIndex >= appState.playableQueue.length) {
     appState.currentTrackIndex = -1;
   }
+
+  // simple animation to indicate queue update
+  if (window.anime && playerPanel) {
+    anime({
+      targets: playerPanel,
+      translateX: [-10, 0],
+      duration: 300,
+      easing: 'easeOutQuad'
+    });
+  }
 }
 
 function renderDownloadList(song) {
@@ -1223,6 +1274,18 @@ function renderSongs(songs) {
     `
     )
     .join("");
+
+  // animate cards into view
+  if (window.anime) {
+    anime({
+      targets: songsGrid.querySelectorAll('.card'),
+      translateX: [50, 0],
+      opacity: [0, 1],
+      duration: 600,
+      easing: 'easeOutQuad',
+      delay: anime.stagger(40)
+    });
+  }
 }
 
 function renderArtists(artists) {
@@ -2264,6 +2327,37 @@ playBtn.addEventListener("click", () => {
 pauseBtn.addEventListener("click", () => {
   audioPlayer.pause();
 });
+
+// animate play/pause controls and title when playback changes
+if (audioPlayer) {
+  audioPlayer.addEventListener('play', () => {
+    if (window.anime) {
+      anime({
+        targets: playBtn,
+        scale: [1, 1.2, 1],
+        duration: 500,
+        easing: 'easeOutElastic(1, .8)'
+      });
+      anime({
+        targets: nowPlayingTitle,
+        scale: [1, 1.1, 1],
+        duration: 600,
+        easing: 'easeOutQuad'
+      });
+    }
+  });
+
+  audioPlayer.addEventListener('pause', () => {
+    if (window.anime) {
+      anime({
+        targets: pauseBtn,
+        scale: [1, 1.1, 1],
+        duration: 400,
+        easing: 'easeOutQuad'
+      });
+    }
+  });
+}
 
 nextBtn.addEventListener("click", () => {
   if (!appState.playableQueue.length) return;
