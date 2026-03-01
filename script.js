@@ -2261,8 +2261,10 @@ async function reloadFromApi(messagePrefix = "Loading") {
 }
 
 async function initializeData() {
+  // First, immediately show fallback data so the page is not blank
   applyPreferencesAndRender("");
   updateLanguageUI();
+  setStatus("Loading music library...");
 
   try {
     const localData = await fetchLocalLibraryData();
@@ -2272,12 +2274,44 @@ async function initializeData() {
     applyPreferencesAndRender("");
     setStatus("Loaded your local library from songs/catalog.json.");
     return;
-  } catch {
-    appState.selectedSource = "archive";
+  } catch (localError) {
+    console.log("Local library failed to load:", localError.message);
+    // Try iTunes as next option (works better in browser)
+    appState.selectedSource = "itunes";
     updateLanguageUI();
   }
 
-  await reloadFromApi("Loading");
+  // Try iTunes API as fallback
+  try {
+    setStatus("Trying iTunes API...");
+    const itunesData = await fetchItunesData("");
+    appState.sourceData = itunesData;
+    applyPreferencesAndRender("");
+    setStatus("Loaded music from iTunes.");
+    return;
+  } catch (itunesError) {
+    console.log("iTunes failed:", itunesError.message);
+  }
+
+  // Try Archive.org as another fallback
+  try {
+    setStatus("Trying archive.org...");
+    const archiveData = await fetchArchiveData("");
+    appState.sourceData = archiveData;
+    applyPreferencesAndRender("");
+    setStatus("Loaded music from archive.org.");
+    return;
+  } catch (archiveError) {
+    console.log("Archive.org failed:", archiveError.message);
+  }
+
+  // Ultimate fallback - use local sample data
+  console.log("All sources failed, using fallback data");
+  appState.sourceData = cloneData(fallbackData);
+  appState.selectedSource = "local";
+  updateLanguageUI();
+  applyPreferencesAndRender("");
+  setStatus("Using sample data. Check console for errors.");
 }
 
 // simple shell-style command interpreter (prefix with '/')
