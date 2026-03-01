@@ -54,7 +54,7 @@ body {
   display: grid;
   grid-template-columns: 96px 1fr;
   gap: 1rem;
-  padding-bottom: 9.6rem;
+  padding-bottom: 12.6rem;
   animation: lift-in 0.45s ease;
 }
 
@@ -514,6 +514,8 @@ body {
   border-top: 1px solid #6f97a255;
   background: #0e161bd9;
   backdrop-filter: blur(12px);
+  max-height: 46vh;
+  overflow-y: auto;
 }
 
 .player-layout {
@@ -647,7 +649,7 @@ body {
 
 .editor-hero {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr auto auto;
   gap: 0.55rem;
   align-items: center;
   background:
@@ -656,6 +658,36 @@ body {
   border: 1px solid #6f97a244;
   border-radius: 10px;
   padding: 0.48rem 0.56rem;
+}
+
+.editor-toggle-btn {
+  border: 1px solid #6f97a266;
+  border-radius: 999px;
+  padding: 0.3rem 0.58rem;
+  background: #173039;
+  color: #e6f4f7;
+  font: inherit;
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.editor-toggle-btn:hover {
+  transform: translateY(-1px);
+}
+
+.editor-collapsed .editor-panel {
+  margin-top: 0.4rem;
+}
+
+.editor-collapsed .editor-panel > :not(.editor-hero):not(.editor-status) {
+  display: none;
+}
+
+.editor-collapsed .editor-status {
+  margin-top: 0.3rem;
 }
 
 .editor-chip-stack {
@@ -957,7 +989,7 @@ body {
 
   .shell {
     grid-template-columns: 1fr;
-    padding-bottom: 10.8rem;
+    padding-bottom: 13.6rem;
   }
 
   .side-rail {
