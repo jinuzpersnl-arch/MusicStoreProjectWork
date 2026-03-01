@@ -89,6 +89,42 @@ const langChips = document.getElementById("langChips");
 const menuToggle = document.getElementById("menuToggle");
 const navLinks = document.getElementById("navLinks");
 
+// helper for scroll-triggered animations
+function initScrollAnimations() {
+  const observer = new IntersectionObserver((entries, obs) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('animated', 'fade-in-up');
+        obs.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.2 });
+
+  document.querySelectorAll('.status-tile, .hero-copy-block, .panel, .card, .song-item').forEach(el => {
+    el.classList.add('opacity-0'); // start hidden
+    observer.observe(el);
+  });
+}
+
+// toggle the mobile navigation with animation
+function bindMenuToggle() {
+  if (!menuToggle || !navLinks) return;
+  menuToggle.addEventListener('click', () => {
+    const expanded = menuToggle.getAttribute('aria-expanded') === 'true';
+    menuToggle.setAttribute('aria-expanded', String(!expanded));
+    navLinks.classList.toggle('open');
+
+    // animate the toggle icon
+    menuToggle.classList.toggle('rotated');
+  });
+}
+
+// kick off UI helpers once DOM has been parsed
+document.addEventListener('DOMContentLoaded', () => {
+  initScrollAnimations();
+  bindMenuToggle();
+});
+
 const audioPlayer = document.getElementById("audioPlayer");
 const nowPlayingTitle = document.getElementById("nowPlayingTitle");
 const nowPlayingMeta = document.getElementById("nowPlayingMeta");
