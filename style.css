@@ -127,6 +127,13 @@ body[data-page="home"] .player-panel {
   background: #17263fd9;
   border: 1px solid #5f78ab55;
   transition: all 0.22s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rail-link i {
+  font-size: 1.1rem;
 }
 
 .rail-link:hover {
@@ -218,6 +225,13 @@ body[data-page="home"] .player-panel {
   border: 1px solid #5871a566;
   background: #192c47e0;
   transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+}
+
+.nav-links a i {
+  font-size: 1rem;
 }
 
 .nav-links a:hover {
