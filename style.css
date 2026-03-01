@@ -628,6 +628,12 @@ body {
   border-radius: 10px;
   padding: 0.58rem;
   background: #102027d4;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.editor-panel.is-busy {
+  border-color: #79f2df99;
+  box-shadow: 0 0 0 2px #79f2df22;
 }
 
 .editor-title {
@@ -651,6 +657,13 @@ body {
   background: linear-gradient(180deg, #102027e6, #0d1c22e6);
   display: block;
   touch-action: none;
+  cursor: ew-resize;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#waveformCanvas.dragging {
+  border-color: #f4a259cc;
+  box-shadow: 0 0 0 2px #f4a25933;
 }
 
 .waveform-labels {
@@ -658,8 +671,15 @@ body {
   display: flex;
   justify-content: space-between;
   gap: 0.4rem;
+}
+
+.waveform-labels span {
   color: #bcd2d7;
   font-size: 0.72rem;
+  border: 1px solid #6f97a244;
+  border-radius: 999px;
+  background: #13252dbf;
+  padding: 0.18rem 0.48rem;
 }
 
 .editor-grid {
@@ -704,6 +724,7 @@ body {
   text-transform: uppercase;
   font-weight: 700;
   cursor: pointer;
+  transition: transform 0.2s ease, filter 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
 }
 
 .editor-buttons button:hover {
@@ -714,6 +735,28 @@ body {
   margin: 0.5rem 0 0;
   color: #9fb8bf;
   font-size: 0.74rem;
+  transition: color 0.2s ease;
+}
+
+.editor-status.flash {
+  color: #dcf5f1;
+}
+
+.editor-buttons button.is-working {
+  border-color: #79f2df99;
+  filter: brightness(1.08);
+  animation: btn-pulse 1s ease-in-out infinite;
+}
+
+.editor-buttons button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@keyframes btn-pulse {
+  0% { box-shadow: 0 0 0 0 #79f2df55; }
+  70% { box-shadow: 0 0 0 6px #79f2df00; }
+  100% { box-shadow: 0 0 0 0 #79f2df00; }
 }
 
 @media (max-width: 1040px) {

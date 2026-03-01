@@ -109,7 +109,9 @@ const downloadCutBtn = document.getElementById("downloadCutBtn");
 const editorStatus = document.getElementById("editorStatus");
 const waveformCanvas = document.getElementById("waveformCanvas");
 const waveStartLabel = document.getElementById("waveStartLabel");
+const waveSelectionLabel = document.getElementById("waveSelectionLabel");
 const waveEndLabel = document.getElementById("waveEndLabel");
+const editorPanel = document.querySelector(".editor-panel");
 
 const appState = {
   sourceData: cloneData(fallbackData),
@@ -131,7 +133,10 @@ const editorState = {
   previewUrl: "",
   peaks: [],
   dragHandle: "",
-  isPreviewing: false
+  isPreviewing: false,
+  busy: false,
+  animationFrame: 0,
+  statusFlashTimer: null
 };
 
 const LOCAL_LIBRARY_PATH = "songs/catalog.json";
@@ -221,7 +226,32 @@ function setStatus(message) {
 }
 
 function setEditorStatus(message) {
-  if (editorStatus) editorStatus.textContent = message;
+  if (!editorStatus) return;
+  editorStatus.textContent = message;
+  editorStatus.classList.remove("flash");
+  if (editorState.statusFlashTimer) {
+    clearTimeout(editorState.statusFlashTimer);
+  }
+  void editorStatus.offsetWidth;
+  editorStatus.classList.add("flash");
+  editorState.statusFlashTimer = setTimeout(() => {
+    editorStatus.classList.remove("flash");
+  }, 350);
+}
+
+function setEditorBusy(busy, button = null) {
+  editorState.busy = busy;
+  editorPanel?.classList.toggle("is-busy", busy);
+
+  [previewTrimBtn, downloadTrimBtn, downloadCutBtn].forEach((btn) => {
+    if (!btn) return;
+    btn.disabled = busy;
+    btn.classList.remove("is-working");
+  });
+
+  if (busy && button) {
+    button.classList.add("is-working");
+  }
 }
 
 function readTrimRange() {
@@ -270,6 +300,7 @@ function setTrimRange(startSeconds, endSeconds, activeHandle = "") {
 function updateWaveLabels() {
   const { start, end } = readTrimRange();
   if (waveStartLabel) waveStartLabel.textContent = `Start: ${formatSeconds(start)}`;
+  if (waveSelectionLabel) waveSelectionLabel.textContent = `Selected: ${formatSeconds(Math.max(0, end - start))}`;
   if (waveEndLabel) waveEndLabel.textContent = `End: ${formatSeconds(end)}`;
 }
 
@@ -332,8 +363,12 @@ function drawWaveform() {
   const { start, end } = clampTrimRange(readTrimRange().start, readTrimRange().end, duration);
   const startX = (start / duration) * cssWidth;
   const endX = (end / duration) * cssWidth;
+  const pulse = 0.12 + ((Math.sin(Date.now() / 260) + 1) * 0.09);
+  const playheadX = Number.isFinite(audioPlayer.currentTime)
+    ? (Math.max(0, Math.min(audioPlayer.currentTime, duration)) / duration) * cssWidth
+    : 0;
 
-  ctx.fillStyle = "rgba(82, 201, 183, 0.12)";
+  ctx.fillStyle = `rgba(82, 201, 183, ${pulse.toFixed(3)})`;
   ctx.fillRect(startX, 0, Math.max(0, endX - startX), cssHeight);
 
   const barWidth = cssWidth / editorState.peaks.length;
@@ -343,9 +378,17 @@ function drawWaveform() {
     const height = Math.max(2, peak * (cssHeight - pad * 2));
     const y = midY - height / 2;
     const isSelected = x >= startX && x <= endX;
-    ctx.fillStyle = isSelected ? "rgba(121, 242, 223, 0.95)" : "rgba(142, 171, 178, 0.75)";
+    ctx.fillStyle = isSelected ? "rgba(121, 242, 223, 0.97)" : "rgba(142, 171, 178, 0.72)";
     ctx.fillRect(x, y, Math.max(1, barWidth - 1), height);
   }
+
+  ctx.strokeStyle = "rgba(121, 242, 223, 0.45)";
+  ctx.setLineDash([5, 5]);
+  ctx.beginPath();
+  ctx.moveTo(playheadX, 0);
+  ctx.lineTo(playheadX, cssHeight);
+  ctx.stroke();
+  ctx.setLineDash([]);
 
   ctx.strokeStyle = "rgba(244, 162, 89, 0.95)";
   ctx.lineWidth = 2;
@@ -396,6 +439,7 @@ function bindWaveformInteractions() {
     const localX = event.clientX - rect.left;
     const pickStart = Math.abs(localX - startX) <= Math.abs(localX - endX);
     editorState.dragHandle = pickStart ? "start" : "end";
+    waveformCanvas.classList.add("dragging");
     waveformCanvas.setPointerCapture(event.pointerId);
     handleWavePointer(event.clientX);
   });
@@ -408,6 +452,7 @@ function bindWaveformInteractions() {
   const release = () => {
     if (!editorState.dragHandle) return;
     editorState.dragHandle = "";
+    waveformCanvas.classList.remove("dragging");
     updateWaveLabels();
     drawWaveform();
   };
@@ -415,6 +460,15 @@ function bindWaveformInteractions() {
   waveformCanvas.addEventListener("pointerup", release);
   waveformCanvas.addEventListener("pointercancel", release);
   waveformCanvas.addEventListener("lostpointercapture", release);
+}
+
+function startWaveformAnimator() {
+  if (editorState.animationFrame) return;
+  const tick = () => {
+    drawWaveform();
+    editorState.animationFrame = window.requestAnimationFrame(tick);
+  };
+  editorState.animationFrame = window.requestAnimationFrame(tick);
 }
 
 function getLanguagePreset() {
@@ -1559,7 +1613,8 @@ function triggerBlobDownload(blob, fileName) {
   setTimeout(() => URL.revokeObjectURL(url), 8000);
 }
 
-async function previewTrimSelection() {
+async function previewTrimSelection(button = null) {
+  setEditorBusy(true, button);
   try {
     const audioBuffer = await ensureEditorBuffer();
     const { start, end } = clampTrimRange(
@@ -1576,10 +1631,13 @@ async function previewTrimSelection() {
     setEditorStatus(`Previewing trim: ${formatSeconds(start)} to ${formatSeconds(end)}.`);
   } catch (error) {
     setEditorStatus(error?.message || "Trim preview failed.");
+  } finally {
+    setEditorBusy(false);
   }
 }
 
-async function downloadEditedAudio(mode) {
+async function downloadEditedAudio(mode, button = null) {
+  setEditorBusy(true, button);
   try {
     const audioBuffer = await ensureEditorBuffer();
     const { start, end } = clampTrimRange(
@@ -1599,12 +1657,15 @@ async function downloadEditedAudio(mode) {
     );
   } catch (error) {
     setEditorStatus(error?.message || "Audio export failed.");
+  } finally {
+    setEditorBusy(false);
   }
 }
 
 function playTrackByIndex(index) {
   if (index < 0 || index >= appState.playableQueue.length) return;
 
+  setEditorBusy(false);
   releasePreviewUrl();
   appState.currentTrackIndex = index;
   const track = appState.playableQueue[appState.currentTrackIndex];
@@ -1855,15 +1916,15 @@ trimEndInput?.addEventListener("input", () => {
 });
 
 previewTrimBtn?.addEventListener("click", () => {
-  previewTrimSelection();
+  previewTrimSelection(previewTrimBtn);
 });
 
 downloadTrimBtn?.addEventListener("click", () => {
-  downloadEditedAudio("trim");
+  downloadEditedAudio("trim", downloadTrimBtn);
 });
 
 downloadCutBtn?.addEventListener("click", () => {
-  downloadEditedAudio("cut");
+  downloadEditedAudio("cut", downloadCutBtn);
 });
 
 window.addEventListener("resize", () => {
@@ -1885,5 +1946,6 @@ navLinks.addEventListener("click", (event) => {
 bindWaveformInteractions();
 updateWaveLabels();
 drawWaveform();
+startWaveformAnimator();
 
 initializeData();
