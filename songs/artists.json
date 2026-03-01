@@ -1,6 +1,12 @@
 {
   "artists": [
     {
+      "name": "AR-Rahman",
+      "genre": "Film Score",
+      "monthlyListeners": "10M",
+      "image": "images/artists/AR-Rahman.webp"
+    },
+    {
       "name": "Your Artist Name",
       "genre": "Pop",
       "monthlyListeners": "100K",
