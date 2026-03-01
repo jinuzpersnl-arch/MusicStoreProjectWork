@@ -59,24 +59,56 @@ function makeSongItem(song) {
   return item;
 }
 
-function renderArtistsPage(songs) {
+function renderArtistsPage(songs, rawArtists = []) {
   const groups = window.LocalLibrary.groupByArtist(songs);
   const grid = document.getElementById("artistsGrid");
+  grid.innerHTML = "";
 
-  if (!groups.length) {
-    grid.innerHTML = "<p class=\"notice\">No artists found in songs/catalog.json.</p>";
-    return;
+  const shown = new Set();
+
+  if (groups.length) {
+    groups.forEach((artist) => {
+      const card = makeCard(artist.name, [`Songs: ${artist.count}`], artist.image);
+      const link = document.createElement("a");
+      link.className = "link-btn";
+      link.href = `artist-detail.html?artist=${encodeURIComponent(artist.name)}`;
+      link.textContent = "View Artist Songs";
+      card.appendChild(link);
+      grid.appendChild(card);
+      shown.add(String(artist.name).trim().toLowerCase());
+    });
   }
 
-  groups.forEach((artist) => {
-    const card = makeCard(artist.name, [`Songs: ${artist.count}`], artist.image);
-    const link = document.createElement("a");
-    link.className = "link-btn";
-    link.href = `artist-detail.html?artist=${encodeURIComponent(artist.name)}`;
-    link.textContent = "View Artist Songs";
-    card.appendChild(link);
-    grid.appendChild(card);
-  });
+  // Also render artists from songs/artists.json that might not have songs in catalog
+  if (Array.isArray(rawArtists) && rawArtists.length) {
+    rawArtists.forEach((a) => {
+      const name = String(a?.name || "").trim();
+      if (!name) return;
+      const key = name.toLowerCase();
+      if (shown.has(key)) return; // already rendered from songs
+
+      const imageUrl = typeof normalizeLocalPath === "function"
+        ? normalizeLocalPath(a.image || a.photo || a.artwork || "")
+        : (a.image || "");
+
+      const lines = [];
+      if (a.genre) lines.push(a.genre);
+      if (a.monthlyListeners) lines.push(`Listeners: ${a.monthlyListeners}`);
+
+      const card = makeCard(name, lines, imageUrl || undefined);
+      const link = document.createElement("a");
+      link.className = "link-btn";
+      link.href = `artist-detail.html?artist=${encodeURIComponent(name)}`;
+      link.textContent = "View Artist Songs";
+      card.appendChild(link);
+      grid.appendChild(card);
+      shown.add(key);
+    });
+  }
+
+  if (!grid.children.length) {
+    grid.innerHTML = "<p class=\"notice\">No artists found.</p>";
+  }
 }
 
 function renderAlbumsPage(songs) {
@@ -153,9 +185,10 @@ async function initLibraryPage() {
   try {
     const data = await window.LocalLibrary.loadLibraryData();
     const songs = data.songs;
+    const artists = data.artists || [];
     status.textContent = `Loaded ${songs.length} song(s) from songs/catalog.json`;
 
-    if (pageType === "artists") renderArtistsPage(songs);
+    if (pageType === "artists") renderArtistsPage(songs, artists);
     if (pageType === "albums") renderAlbumsPage(songs);
     if (pageType === "artist-detail") renderArtistDetailPage(songs);
     if (pageType === "album-detail") renderAlbumDetailPage(songs);
