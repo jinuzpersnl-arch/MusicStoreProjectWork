@@ -94,8 +94,19 @@ function initScrollAnimations() {
   const observer = new IntersectionObserver((entries, obs) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
-        entry.target.classList.add('animated', 'fade-in-up');
         obs.unobserve(entry.target);
+        // animate with anime.js if available, otherwise fall back to CSS
+        if (window.anime) {
+          anime({
+            targets: entry.target,
+            opacity: [0,1],
+            translateY: [20,0],
+            duration: 700,
+            easing: 'easeOutQuad'
+          });
+        } else {
+          entry.target.classList.add('animated', 'fade-in-up');
+        }
       }
     });
   }, { threshold: 0.2 });
@@ -115,7 +126,16 @@ function bindMenuToggle() {
     navLinks.classList.toggle('open');
 
     // animate the toggle icon
-    menuToggle.classList.toggle('rotated');
+    if (window.anime) {
+      anime({
+        targets: menuToggle,
+        rotate: expanded ? 0 : 90,
+        duration: 400,
+        easing: 'easeOutExpo'
+      });
+    } else {
+      menuToggle.classList.toggle('rotated');
+    }
   });
 }
 
