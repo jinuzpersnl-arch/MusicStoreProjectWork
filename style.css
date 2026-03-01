@@ -1449,3 +1449,193 @@ body {
     height: 44px;
   }
 }
+
+/* Apple Music Layout v2 */
+body {
+  padding: 0.9rem;
+}
+
+.shell.shell-advanced {
+  width: min(1480px, 100%);
+  grid-template-columns: 228px 1fr;
+  gap: 1rem;
+}
+
+.side-rail {
+  position: sticky;
+  top: 0.9rem;
+  height: calc(100vh - 1.8rem);
+  border-radius: 20px;
+  padding: 0.95rem 0.7rem;
+  overflow-y: auto;
+}
+
+.rail-link {
+  text-align: left;
+  padding: 0.6rem 0.68rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.stage {
+  border-radius: 24px;
+  padding: 1.2rem;
+}
+
+.topbar {
+  align-items: center;
+}
+
+.brand {
+  font-size: clamp(2rem, 2.8vw, 2.7rem);
+  font-weight: 800;
+}
+
+.status-ribbon {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.hero-panel {
+  border-radius: 24px;
+  grid-template-columns: 1.55fr 1fr;
+  padding: 1.4rem;
+}
+
+.hero-panel h2 {
+  font-size: clamp(2rem, 3vw, 2.6rem);
+  line-height: 1.02;
+}
+
+.content-grid {
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "songs"
+    "artists"
+    "albums"
+    "books"
+    "podcasts";
+  gap: 1rem;
+}
+
+.panel {
+  border-radius: 18px;
+  padding: 1rem;
+}
+
+.section-title-row {
+  margin-bottom: 0.35rem;
+}
+
+#songsGrid,
+#artistsGrid,
+#albumsGrid,
+#booksGrid,
+#podcastsGrid {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(210px, 1fr);
+  gap: 0.72rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+  scroll-snap-type: x mandatory;
+}
+
+#songsGrid .card,
+#artistsGrid .card,
+#albumsGrid .card,
+#booksGrid .card,
+#podcastsGrid .card {
+  scroll-snap-align: start;
+}
+
+#songsGrid .card {
+  min-width: 320px;
+}
+
+.card {
+  border-radius: 16px;
+  min-height: 100%;
+}
+
+.card h3 {
+  font-size: 1.03rem;
+}
+
+.card-media {
+  border-radius: 12px;
+  height: 172px;
+}
+
+.card-actions {
+  display: flex;
+  gap: 0.45rem;
+}
+
+.player-panel {
+  left: 0.9rem;
+  right: 0.9rem;
+  bottom: 0.9rem;
+  border-radius: 18px;
+  border: 1px solid #d4dcee;
+  box-shadow: 0 18px 44px #11234a1a;
+}
+
+.player-layout {
+  width: calc(100% - 1.4rem);
+}
+
+@media (max-width: 1040px) {
+  .shell.shell-advanced {
+    grid-template-columns: 1fr;
+  }
+
+  .side-rail {
+    position: static;
+    height: auto;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.45rem;
+    overflow: auto;
+    white-space: nowrap;
+  }
+
+  .status-ribbon,
+  .hero-panel {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 680px) {
+  body {
+    padding: 0.65rem;
+  }
+
+  .stage {
+    padding: 0.86rem;
+  }
+
+  .hero-panel {
+    padding: 0.95rem;
+  }
+
+  #songsGrid,
+  #artistsGrid,
+  #albumsGrid,
+  #booksGrid,
+  #podcastsGrid {
+    grid-auto-columns: minmax(172px, 80vw);
+  }
+
+  #songsGrid .card {
+    min-width: 0;
+  }
+
+  .player-panel {
+    left: 0.55rem;
+    right: 0.55rem;
+    bottom: 0.55rem;
+  }
+}
