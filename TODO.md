@@ -1,16 +1,28 @@
-# Music Store Project - Bug Fixes TODO
+# Music Store Project Recovery Plan
 
-## Completed Fixes
+## Issues Identified:
 
-- [x] 1. Fix player.html - Add FontAwesome CSS
-- [x] 2. Fix player.html - Add anime.js script
-- [x] 3. Fix player.html - Add icons to side rail links
-- [x] 4. Fix artist-detail.html - Add sw-register.js
-- [x] 5. Fix artist-detail.html - Add meta tags (theme-color, apple-mobile-web-app, manifest)
-- [x] 6. Fix local-library.js - Add downloads array in normalizeSong with format detection
+1. **File path mismatch in catalog.json**: 
+   - Catalog references: `albums/1-tamil/filename.mp3`
+   - Actual files: `albums/1-tamil/filename.mp3.mp3`
 
-## Notes
+2. **Loading overlay may get stuck on failure**: The loading overlay in index.html hides the body initially. If data loading fails, the content may not be visible.
 
-- The normalizeLocalPath() function in local-library.js already handles adding "songs/" prefix, so catalog.json paths work correctly
-- player.html side rail was fixed with FontAwesome icons
-- artist-detail.html now has consistent meta tags and service worker registration
+3. **Need to verify fallback data works**: Ensure the app works even without local files.
+
+## Recovery Steps:
+
+### Step 1: Fix catalog.json file paths
+- Update all file references to add `.mp3` extension
+
+### Step 2: Improve index.html to handle loading failures
+- Add fallback to show content even if data loading fails
+- Ensure loading overlay can be dismissed
+
+### Step 3: Test authentication flow
+- Verify login/logout works properly
+
+### Step 4: Verify fallback data works
+- Ensure SoundHelix fallback audio is available
+
+## Status: In Progress

@@ -85,14 +85,29 @@
       }
     }
     
+    // Fallback - show content after a timeout even if something fails
+    function forceRevealContent() {
+      if (loadingOverlay && loadingOverlay.style.display !== 'none') {
+        console.log('Force revealing content due to timeout');
+        revealContent();
+      }
+    }
+    
+    // Set a safety timeout to force reveal after 10 seconds
+    var safetyTimeout = setTimeout(forceRevealContent, 10000);
+    
     // Check authentication immediately
     // ensureAuthenticated() returns true if logged in, false if not (and redirects to login)
     if (ensureAuthenticated()) {
       // User is authenticated - wait for DOM and all resources
       if (document.readyState === 'complete') {
+        clearTimeout(safetyTimeout);
         revealContent();
       } else {
-        window.addEventListener('load', revealContent);
+        window.addEventListener('load', function() {
+          clearTimeout(safetyTimeout);
+          revealContent();
+        });
       }
     }
     // If not authenticated, ensureAuthenticated() already redirected to login.html
