@@ -107,6 +107,9 @@ const previewTrimBtn = document.getElementById("previewTrimBtn");
 const downloadTrimBtn = document.getElementById("downloadTrimBtn");
 const downloadCutBtn = document.getElementById("downloadCutBtn");
 const editorStatus = document.getElementById("editorStatus");
+const waveformCanvas = document.getElementById("waveformCanvas");
+const waveStartLabel = document.getElementById("waveStartLabel");
+const waveEndLabel = document.getElementById("waveEndLabel");
 
 const appState = {
   sourceData: cloneData(fallbackData),
@@ -123,8 +126,12 @@ const appState = {
 
 const editorState = {
   sourceUrl: "",
+  originalSourceUrl: "",
   audioBuffer: null,
-  previewUrl: ""
+  previewUrl: "",
+  peaks: [],
+  dragHandle: "",
+  isPreviewing: false
 };
 
 const LOCAL_LIBRARY_PATH = "songs/catalog.json";
@@ -230,6 +237,184 @@ function clampTrimRange(startSeconds, endSeconds, maxSeconds) {
   const end = Math.max(0, Math.min(endSeconds, maxSeconds));
   if (end <= start) return { start: 0, end: maxSeconds };
   return { start, end };
+}
+
+function getActiveDuration() {
+  if (editorState.audioBuffer?.duration) return editorState.audioBuffer.duration;
+  if (Number.isFinite(audioPlayer.duration) && audioPlayer.duration > 0) return audioPlayer.duration;
+  return 0;
+}
+
+function setTrimRange(startSeconds, endSeconds, activeHandle = "") {
+  const duration = getActiveDuration();
+  if (!duration) return;
+
+  let start = Math.max(0, Math.min(startSeconds, duration));
+  let end = Math.max(0, Math.min(endSeconds, duration));
+  const minGap = Math.min(0.1, duration / 4);
+
+  if (end <= start) {
+    if (activeHandle === "start") {
+      start = Math.max(0, end - minGap);
+    } else {
+      end = Math.min(duration, start + minGap);
+    }
+  }
+
+  trimStartInput.value = start.toFixed(1);
+  trimEndInput.value = end.toFixed(1);
+  updateWaveLabels();
+  drawWaveform();
+}
+
+function updateWaveLabels() {
+  const { start, end } = readTrimRange();
+  if (waveStartLabel) waveStartLabel.textContent = `Start: ${formatSeconds(start)}`;
+  if (waveEndLabel) waveEndLabel.textContent = `End: ${formatSeconds(end)}`;
+}
+
+function computeWavePeaks(audioBuffer, bins) {
+  const channel = audioBuffer.getChannelData(0);
+  const blockSize = Math.max(1, Math.floor(channel.length / bins));
+  const peaks = [];
+
+  for (let i = 0; i < bins; i += 1) {
+    const start = i * blockSize;
+    const end = Math.min(start + blockSize, channel.length);
+    let peak = 0;
+    for (let j = start; j < end; j += 1) {
+      const value = Math.abs(channel[j]);
+      if (value > peak) peak = value;
+    }
+    peaks.push(peak);
+  }
+
+  return peaks;
+}
+
+function drawWaveform() {
+  if (!waveformCanvas) return;
+  const ctx = waveformCanvas.getContext("2d");
+  if (!ctx) return;
+
+  const rect = waveformCanvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  const cssWidth = Math.max(300, Math.floor(rect.width || 900));
+  const cssHeight = Math.max(90, Math.floor(rect.height || 120));
+  const pixelWidth = Math.floor(cssWidth * dpr);
+  const pixelHeight = Math.floor(cssHeight * dpr);
+
+  if (waveformCanvas.width !== pixelWidth || waveformCanvas.height !== pixelHeight) {
+    waveformCanvas.width = pixelWidth;
+    waveformCanvas.height = pixelHeight;
+  }
+
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, cssWidth, cssHeight);
+
+  const midY = cssHeight / 2;
+  const pad = 8;
+  ctx.strokeStyle = "rgba(121, 242, 223, 0.25)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, midY);
+  ctx.lineTo(cssWidth, midY);
+  ctx.stroke();
+
+  if (!editorState.peaks.length) {
+    ctx.fillStyle = "rgba(191, 211, 216, 0.8)";
+    ctx.font = "12px Manrope, sans-serif";
+    ctx.fillText("Waveform loads when track is ready.", 12, midY + 4);
+    return;
+  }
+
+  const duration = getActiveDuration() || 1;
+  const { start, end } = clampTrimRange(readTrimRange().start, readTrimRange().end, duration);
+  const startX = (start / duration) * cssWidth;
+  const endX = (end / duration) * cssWidth;
+
+  ctx.fillStyle = "rgba(82, 201, 183, 0.12)";
+  ctx.fillRect(startX, 0, Math.max(0, endX - startX), cssHeight);
+
+  const barWidth = cssWidth / editorState.peaks.length;
+  for (let i = 0; i < editorState.peaks.length; i += 1) {
+    const peak = editorState.peaks[i];
+    const x = i * barWidth;
+    const height = Math.max(2, peak * (cssHeight - pad * 2));
+    const y = midY - height / 2;
+    const isSelected = x >= startX && x <= endX;
+    ctx.fillStyle = isSelected ? "rgba(121, 242, 223, 0.95)" : "rgba(142, 171, 178, 0.75)";
+    ctx.fillRect(x, y, Math.max(1, barWidth - 1), height);
+  }
+
+  ctx.strokeStyle = "rgba(244, 162, 89, 0.95)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(startX, 0);
+  ctx.lineTo(startX, cssHeight);
+  ctx.moveTo(endX, 0);
+  ctx.lineTo(endX, cssHeight);
+  ctx.stroke();
+
+  ctx.fillStyle = "rgba(244, 162, 89, 0.95)";
+  ctx.beginPath();
+  ctx.arc(startX, 10, 4, 0, Math.PI * 2);
+  ctx.arc(endX, 10, 4, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function handleWavePointer(clientX) {
+  if (!waveformCanvas) return;
+  const rect = waveformCanvas.getBoundingClientRect();
+  const ratio = Math.max(0, Math.min((clientX - rect.left) / Math.max(1, rect.width), 1));
+  const duration = getActiveDuration();
+  if (!duration) return;
+  const timeAtPointer = ratio * duration;
+  const current = readTrimRange();
+
+  if (editorState.dragHandle === "start") {
+    setTrimRange(timeAtPointer, current.end, "start");
+  } else if (editorState.dragHandle === "end") {
+    setTrimRange(current.start, timeAtPointer, "end");
+  }
+}
+
+function bindWaveformInteractions() {
+  if (!waveformCanvas) return;
+
+  waveformCanvas.addEventListener("pointerdown", (event) => {
+    const duration = getActiveDuration();
+    if (!duration) {
+      setEditorStatus("Play a track first to load waveform.");
+      return;
+    }
+
+    const rect = waveformCanvas.getBoundingClientRect();
+    const { start, end } = readTrimRange();
+    const startX = (start / duration) * rect.width;
+    const endX = (end / duration) * rect.width;
+    const localX = event.clientX - rect.left;
+    const pickStart = Math.abs(localX - startX) <= Math.abs(localX - endX);
+    editorState.dragHandle = pickStart ? "start" : "end";
+    waveformCanvas.setPointerCapture(event.pointerId);
+    handleWavePointer(event.clientX);
+  });
+
+  waveformCanvas.addEventListener("pointermove", (event) => {
+    if (!editorState.dragHandle) return;
+    handleWavePointer(event.clientX);
+  });
+
+  const release = () => {
+    if (!editorState.dragHandle) return;
+    editorState.dragHandle = "";
+    updateWaveLabels();
+    drawWaveform();
+  };
+
+  waveformCanvas.addEventListener("pointerup", release);
+  waveformCanvas.addEventListener("pointercancel", release);
+  waveformCanvas.addEventListener("lostpointercapture", release);
 }
 
 function getLanguagePreset() {
@@ -1259,7 +1444,7 @@ function releasePreviewUrl() {
 }
 
 async function ensureEditorBuffer() {
-  const src = String(audioPlayer.currentSrc || audioPlayer.src || "").trim();
+  const src = String(editorState.originalSourceUrl || audioPlayer.currentSrc || audioPlayer.src || "").trim();
   if (!src) {
     throw new Error("No active track selected.");
   }
@@ -1281,8 +1466,11 @@ async function ensureEditorBuffer() {
 
   editorState.sourceUrl = src;
   editorState.audioBuffer = decoded;
+  editorState.peaks = computeWavePeaks(decoded, 320);
   trimStartInput.value = "0";
   trimEndInput.value = String(Math.max(0, decoded.duration).toFixed(1));
+  updateWaveLabels();
+  drawWaveform();
   return decoded;
 }
 
@@ -1382,6 +1570,7 @@ async function previewTrimSelection() {
     const blob = buildTrimBlob(audioBuffer, start, end);
     releasePreviewUrl();
     editorState.previewUrl = URL.createObjectURL(blob);
+    editorState.isPreviewing = true;
     audioPlayer.src = editorState.previewUrl;
     await audioPlayer.play();
     setEditorStatus(`Previewing trim: ${formatSeconds(start)} to ${formatSeconds(end)}.`);
@@ -1436,11 +1625,20 @@ function playTrackByIndex(index) {
   }
 
   editorState.sourceUrl = "";
+  editorState.originalSourceUrl = playbackUrl;
   editorState.audioBuffer = null;
+  editorState.peaks = [];
+  editorState.isPreviewing = false;
   if (trimStartInput) trimStartInput.value = "0";
   if (trimEndInput) trimEndInput.value = String(parseDurationToSeconds(track.duration || "0:00") || 0);
+  updateWaveLabels();
+  drawWaveform();
   setEditorStatus("Track ready. Set start/end and use Trim/Cut.");
   audioPlayer.play();
+
+  ensureEditorBuffer().catch(() => {
+    drawWaveform();
+  });
 }
 
 function playTrackFromButton(type, id) {
@@ -1600,6 +1798,8 @@ audioPlayer.addEventListener("loadedmetadata", () => {
       trimEndInput.value = String(audioPlayer.duration.toFixed(1));
     }
   }
+  updateWaveLabels();
+  drawWaveform();
 });
 
 audioPlayer.addEventListener("timeupdate", () => {
@@ -1610,6 +1810,10 @@ audioPlayer.addEventListener("timeupdate", () => {
 });
 
 audioPlayer.addEventListener("ended", () => {
+  if (editorState.isPreviewing) {
+    editorState.isPreviewing = false;
+    return;
+  }
   const nextIndex =
     appState.currentTrackIndex < appState.playableQueue.length - 1 ? appState.currentTrackIndex + 1 : 0;
   playTrackByIndex(nextIndex);
@@ -1631,13 +1835,23 @@ progressBar.addEventListener("input", () => {
 
 setTrimStartBtn?.addEventListener("click", () => {
   trimStartInput.value = String((audioPlayer.currentTime || 0).toFixed(1));
+  setTrimRange(Number(trimStartInput.value || 0), Number(trimEndInput.value || 0), "start");
   setEditorStatus(`Start set to ${formatSeconds(audioPlayer.currentTime || 0)}.`);
 });
 
 setTrimEndBtn?.addEventListener("click", () => {
   const value = Number.isFinite(audioPlayer.duration) ? audioPlayer.currentTime : Number(trimEndInput.value || 0);
   trimEndInput.value = String((value || 0).toFixed(1));
+  setTrimRange(Number(trimStartInput.value || 0), Number(trimEndInput.value || 0), "end");
   setEditorStatus(`End set to ${formatSeconds(value || 0)}.`);
+});
+
+trimStartInput?.addEventListener("input", () => {
+  setTrimRange(Number(trimStartInput.value || 0), Number(trimEndInput.value || 0), "start");
+});
+
+trimEndInput?.addEventListener("input", () => {
+  setTrimRange(Number(trimStartInput.value || 0), Number(trimEndInput.value || 0), "end");
 });
 
 previewTrimBtn?.addEventListener("click", () => {
@@ -1652,6 +1866,10 @@ downloadCutBtn?.addEventListener("click", () => {
   downloadEditedAudio("cut");
 });
 
+window.addEventListener("resize", () => {
+  drawWaveform();
+});
+
 menuToggle.addEventListener("click", () => {
   navLinks.classList.toggle("open");
 });
@@ -1663,5 +1881,9 @@ navLinks.addEventListener("click", (event) => {
     navLinks.classList.remove("open");
   }
 });
+
+bindWaveformInteractions();
+updateWaveLabels();
+drawWaveform();
 
 initializeData();
