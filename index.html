@@ -188,12 +188,37 @@
             </div>
           </div>
           <div class="waveform-wrap">
-            <canvas id="waveformCanvas" width="900" height="120" aria-label="Audio waveform editor"></canvas>
+            <div class="editor-preview-card">
+              <img id="editorPreviewImage" class="editor-preview-image" src="songs/images/albums/default-album.svg" alt="Track artwork" />
+              <div class="editor-preview-copy">
+                <p id="editorPreviewTitle">No track selected</p>
+                <p id="editorTimecode">00:00.000 / 00:00.000</p>
+              </div>
+            </div>
+            <div class="timeline-lanes">
+              <canvas id="waveformCanvas" width="900" height="120" aria-label="Audio waveform editor"></canvas>
+              <canvas id="waveformAuxCanvasA" width="900" height="44" aria-hidden="true"></canvas>
+              <canvas id="waveformAuxCanvasB" width="900" height="44" aria-hidden="true"></canvas>
+            </div>
             <div class="waveform-labels">
               <span id="waveStartLabel">Start: 0:00</span>
               <span id="waveSelectionLabel">Selected: 0:00</span>
               <span id="waveEndLabel">End: 0:00</span>
             </div>
+          </div>
+          <div class="effects-panel" aria-label="Audio effects">
+            <button id="noiseReductionBtn" type="button" class="effect-card" aria-pressed="false">
+              <span class="effect-name">Noise Reduction</span>
+              <span class="effect-note">Cleaner background</span>
+            </button>
+            <button id="autocorrectBtn" type="button" class="effect-card" aria-pressed="false">
+              <span class="effect-name">Autocorrect</span>
+              <span class="effect-note">Smoother dynamics</span>
+            </button>
+            <button id="bassBoostBtn" type="button" class="effect-card" aria-pressed="false">
+              <span class="effect-name">Bass Boost</span>
+              <span class="effect-note">More low-end punch</span>
+            </button>
           </div>
           <div class="editor-grid">
             <label for="trimStartInput">Start (sec)</label>
