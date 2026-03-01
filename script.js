@@ -309,6 +309,41 @@ function formatBytes(bytes) {
   return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+// Handle lightweight shell commands typed into the search bar.
+// Commands must start with a slash (/). Examples:
+//   /play 123     → play song with id 123
+//   /artist Name  → open artist page
+//   /album Title [Artist] → open album page
+//   /logout       → sign out
+function handleShellCommand(cmd) {
+  const parts = cmd.split(/\s+/).filter(Boolean);
+  if (!parts.length) return;
+  const action = parts.shift().toLowerCase();
+  switch (action) {
+    case 'play':
+      if (parts.length) redirectToPlayer('song', parts[0]);
+      break;
+    case 'artist':
+      const artist = parts.join(' ');
+      if (artist) window.location.href = `artist-detail.html?artist=${encodeURIComponent(artist)}`;
+      break;
+    case 'album':
+      const album = parts.shift() || '';
+      const artistName = parts.join(' ');
+      if (album) {
+        let url = `album-detail.html?album=${encodeURIComponent(album)}`;
+        if (artistName) url += `&artist=${encodeURIComponent(artistName)}`;
+        window.location.href = url;
+      }
+      break;
+    case 'logout':
+      logoutUser();
+      break;
+    default:
+      setStatus(`Unknown command: ${action}`);
+  }
+}
+
 function parseDurationToSeconds(durationText) {
   const text = String(durationText || "").trim();
   if (!text.includes(":")) return 0;
@@ -2244,6 +2279,17 @@ async function initializeData() {
 
   await reloadFromApi("Loading");
 }
+
+// simple shell-style command interpreter (prefix with '/')
+searchInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const val = searchInput.value.trim();
+    if (val.startsWith('/')) {
+      e.preventDefault();
+      handleShellCommand(val.slice(1).trim());
+    }
+  }
+});
 
 searchInput.addEventListener("input", (event) => {
   const term = event.target.value;
