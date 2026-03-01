@@ -15,49 +15,35 @@ const fallbackData = {
           url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
         }
       ]
-    },
-    {
-      id: 2,
-      title: "City Lights",
-      artist: "Neon Frame",
-      album: "After Hours",
-      duration: "3:04",
-      audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
-      downloads: [
-        {
-          label: "MP3 Preview",
-          format: "MP3",
-          quality: "Standard",
-          url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
-        }
-      ]
-    },
-    {
-      id: 3,
-      title: "Wander Road",
-      artist: "Atlas Echo",
-      album: "Open Miles",
-      duration: "2:48",
-      audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
-      downloads: [
-        {
-          label: "MP3 Preview",
-          format: "MP3",
-          quality: "Standard",
-          url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
-        }
-      ]
     }
   ],
   artists: [
-    { name: "Luna Waves", genre: "Indie Pop", monthlyListeners: "1.4M" },
-    { name: "Neon Frame", genre: "Synthwave", monthlyListeners: "980K" },
-    { name: "Atlas Echo", genre: "Alternative", monthlyListeners: "740K" }
+    { name: "Luna Waves", genre: "Indie Pop", monthlyListeners: "1.4M" }
   ],
   albums: [
-    { title: "Morning Light", artist: "Luna Waves", year: 2024, tracks: 11 },
-    { title: "After Hours", artist: "Neon Frame", year: 2025, tracks: 9 },
-    { title: "Open Miles", artist: "Atlas Echo", year: 2023, tracks: 12 }
+    { title: "Morning Light", artist: "Luna Waves", year: 2024, tracks: 11 }
+  ],
+  books: [
+    {
+      id: "book-fallback-1",
+      title: "Pride and Prejudice",
+      author: "Jane Austen",
+      language: "en",
+      subject: "Classic Fiction",
+      image: "https://covers.openlibrary.org/b/id/8231996-L.jpg",
+      readUrl: "https://www.gutenberg.org/ebooks/1342",
+      downloadUrl: "https://www.gutenberg.org/cache/epub/1342/pg1342-images.html"
+    },
+    {
+      id: "book-fallback-2",
+      title: "Moby Dick; Or, The Whale",
+      author: "Herman Melville",
+      language: "en",
+      subject: "Adventure",
+      image: "https://covers.openlibrary.org/b/id/7222246-L.jpg",
+      readUrl: "https://www.gutenberg.org/ebooks/2701",
+      downloadUrl: "https://www.gutenberg.org/cache/epub/2701/pg2701-images.html"
+    }
   ],
   podcasts: [
     {
@@ -88,6 +74,7 @@ const fallbackAudio = [
 const songsGrid = document.getElementById("songsGrid");
 const artistsGrid = document.getElementById("artistsGrid");
 const albumsGrid = document.getElementById("albumsGrid");
+const booksGrid = document.getElementById("booksGrid");
 const podcastsGrid = document.getElementById("podcastsGrid");
 const searchInput = document.getElementById("searchInput");
 const apiStatus = document.getElementById("apiStatus");
@@ -127,10 +114,12 @@ const appState = {
 };
 
 const LOCAL_LIBRARY_PATH = "songs/catalog.json";
+const BOOKS_LIBRARY_PATH = "songs/books.json";
 const DEFAULT_IMAGES = {
   song: "songs/images/albums/default-album.svg",
   artist: "songs/images/artists/default-artist.svg",
   album: "songs/images/albums/default-album.svg",
+  book: "songs/images/albums/default-album.svg",
   podcast: "songs/images/podcasts/default-podcast.svg"
 };
 
@@ -351,9 +340,29 @@ function normalizeLocalPodcast(podcast, index) {
   };
 }
 
+function normalizeLocalBook(book, index) {
+  const readUrl = String(book?.readUrl || book?.url || "").trim();
+  const downloadUrl = String(book?.downloadUrl || "").trim();
+  const cover = normalizeLocalImagePath(book?.image || book?.cover || "") || DEFAULT_IMAGES.book;
+
+  if (!readUrl && !downloadUrl) return null;
+
+  return {
+    id: book?.id ?? `local-book-${index + 1}`,
+    title: book?.title || `Book ${index + 1}`,
+    author: book?.author || "Unknown Author",
+    language: book?.language || "Unknown",
+    subject: book?.subject || book?.category || "General",
+    image: cover,
+    readUrl: readUrl || downloadUrl,
+    downloadUrl: downloadUrl || readUrl
+  };
+}
+
 function normalizeLocalCatalog(raw) {
   const songsSource = Array.isArray(raw) ? raw : raw?.songs || [];
   const podcastSource = Array.isArray(raw?.podcasts) ? raw.podcasts : [];
+  const booksSource = Array.isArray(raw?.books) ? raw.books : [];
   const artistSource = Array.isArray(raw?.artists) ? raw.artists : [];
   const albumSource = Array.isArray(raw?.albums) ? raw.albums : [];
 
@@ -386,8 +395,9 @@ function normalizeLocalCatalog(raw) {
   });
 
   const podcasts = podcastSource.map(normalizeLocalPodcast).filter(Boolean);
+  const books = booksSource.map(normalizeLocalBook).filter(Boolean);
 
-  if (!songs.length && !podcasts.length) {
+  if (!songs.length && !podcasts.length && !books.length) {
     throw new Error("Local library is empty.");
   }
 
@@ -395,6 +405,7 @@ function normalizeLocalCatalog(raw) {
     songs,
     artists: buildArtistsFromSongs(songs),
     albums: buildAlbumsFromSongs(songs),
+    books,
     podcasts
   };
 }
@@ -454,11 +465,13 @@ function matchesDownloadRules(song) {
 function applySongPreferences(data) {
   const filteredSongs = (data.songs || []).filter((song) => meetsDurationRule(song) && matchesDownloadRules(song));
   const podcasts = data.podcasts || [];
+  const books = data.books || [];
 
   return {
     songs: filteredSongs,
     artists: buildArtistsFromSongs(filteredSongs),
     albums: buildAlbumsFromSongs(filteredSongs),
+    books,
     podcasts
   };
 }
@@ -578,6 +591,29 @@ function renderAlbums(albums) {
     .join("");
 }
 
+function renderBooks(books) {
+  if (!books.length) {
+    booksGrid.innerHTML = "<p>No books match your search.</p>";
+    return;
+  }
+
+  booksGrid.innerHTML = books
+    .map(
+      (book) => `
+      <article class="card">
+        ${renderCardImage(book.image, `${book.title} cover image`)}
+        <h3>${escapeHtml(book.title)}</h3>
+        <p>Author: ${escapeHtml(book.author)}</p>
+        <p>Language: ${escapeHtml(book.language)}</p>
+        <p>Category: ${escapeHtml(book.subject)}</p>
+        <a class="card-link-btn" href="${escapeHtml(book.readUrl)}" target="_blank" rel="noopener">Read Free</a>
+        <a class="card-link-btn" href="${escapeHtml(book.downloadUrl)}" target="_blank" rel="noopener">Download</a>
+      </article>
+    `
+    )
+    .join("");
+}
+
 function renderPodcasts(podcasts) {
   if (!podcasts.length) {
     podcastsGrid.innerHTML = "<p>No podcasts match your search.</p>";
@@ -614,6 +650,10 @@ function filterAndRender(searchTerm) {
     `${album.title} ${album.artist} ${album.year}`.toLowerCase().includes(term)
   );
 
+  const filteredBooks = appState.musicData.books.filter((book) =>
+    `${book.title} ${book.author} ${book.language} ${book.subject}`.toLowerCase().includes(term)
+  );
+
   const filteredPodcasts = appState.musicData.podcasts.filter((podcast) =>
     `${podcast.title} ${podcast.host} ${podcast.episode}`.toLowerCase().includes(term)
   );
@@ -621,6 +661,7 @@ function filterAndRender(searchTerm) {
   renderSongs(filteredSongs);
   renderArtists(filteredArtists);
   renderAlbums(filteredAlbums);
+  renderBooks(filteredBooks);
   renderPodcasts(filteredPodcasts);
 }
 
@@ -713,6 +754,111 @@ function normalizePodcastsFromApi(results) {
   }));
 }
 
+function inferBookLanguage(code) {
+  const key = String(code || "").toLowerCase();
+  if (!key) return "Unknown";
+  if (key === "en") return "English";
+  if (key === "ta") return "Tamil";
+  if (key === "ml") return "Malayalam";
+  if (key === "hi") return "Hindi";
+  if (key === "te") return "Telugu";
+  return key.toUpperCase();
+}
+
+function normalizeBooksFromGutendex(results) {
+  return (results || []).slice(0, 12).map((book, index) => {
+    const id = book?.id ?? `gutendex-${index + 1}`;
+    const title = book?.title || `Book ${index + 1}`;
+    const author = (book?.authors || []).map((item) => item?.name).filter(Boolean).join(", ") || "Unknown Author";
+    const languageCode = Array.isArray(book?.languages) ? book.languages[0] : "";
+    const subjects = Array.isArray(book?.subjects) ? book.subjects : [];
+    const formats = book?.formats || {};
+    const readUrl =
+      formats["text/html"] ||
+      formats["text/html; charset=utf-8"] ||
+      formats["application/pdf"] ||
+      formats["text/plain; charset=utf-8"] ||
+      formats["text/plain"] ||
+      `https://www.gutenberg.org/ebooks/${id}`;
+    const downloadUrl = formats["application/epub+zip"] || formats["application/pdf"] || readUrl;
+    const image = formats["image/jpeg"] || DEFAULT_IMAGES.book;
+
+    return {
+      id: `gutendex-${id}`,
+      title,
+      author,
+      language: inferBookLanguage(languageCode),
+      subject: subjects[0] || "General",
+      image,
+      readUrl,
+      downloadUrl
+    };
+  });
+}
+
+function normalizeBooksFromOpenLibrary(docs) {
+  return (docs || []).slice(0, 12).map((book, index) => {
+    const coverId = book?.cover_i;
+    const key = String(book?.key || "").trim();
+    const edition = Array.isArray(book?.edition_key) ? book.edition_key[0] : "";
+    const readUrl = edition
+      ? `https://openlibrary.org/books/${encodeURIComponent(edition)}`
+      : key
+        ? `https://openlibrary.org${key}`
+        : "https://openlibrary.org";
+
+    return {
+      id: `openlib-${book?.key || index}`,
+      title: book?.title || `Book ${index + 1}`,
+      author: Array.isArray(book?.author_name) ? book.author_name.join(", ") : "Unknown Author",
+      language: Array.isArray(book?.language) ? inferBookLanguage(book.language[0]) : "Unknown",
+      subject: Array.isArray(book?.subject) && book.subject.length ? book.subject[0] : "General",
+      image: coverId ? `https://covers.openlibrary.org/b/id/${coverId}-L.jpg` : DEFAULT_IMAGES.book,
+      readUrl,
+      downloadUrl: readUrl
+    };
+  });
+}
+
+async function fetchBooksData(searchTerm) {
+  const preset = getLanguagePreset();
+  const rawTerm = (searchTerm || "").trim();
+  const query = encodeURIComponent(rawTerm || `${preset.label} classic literature`);
+
+  try {
+    const gutendexUrl = `https://gutendex.com/books/?search=${query}`;
+    const response = await fetch(gutendexUrl);
+    if (!response.ok) throw new Error("Gutendex unavailable");
+    const json = await response.json();
+    const books = normalizeBooksFromGutendex(json?.results);
+    if (books.length) return books;
+  } catch {
+    // fall through to Open Library
+  }
+
+  const openLibraryUrl = `https://openlibrary.org/search.json?q=${query}&limit=18`;
+  const openResponse = await fetch(openLibraryUrl);
+  if (!openResponse.ok) {
+    throw new Error("Book APIs are unavailable.");
+  }
+
+  const openJson = await openResponse.json();
+  const books = normalizeBooksFromOpenLibrary(openJson?.docs);
+  if (!books.length) {
+    throw new Error("No books found.");
+  }
+
+  return books;
+}
+
+async function fetchBooksDataSafe(searchTerm) {
+  try {
+    return await fetchBooksData(searchTerm);
+  } catch {
+    return [];
+  }
+}
+
 function normalizeArchiveDuration(value) {
   if (!value) return "3:00";
   if (typeof value === "string" && value.includes(":")) {
@@ -791,6 +937,7 @@ async function fetchItunesData(searchTerm) {
 
   const [songsJson, podcastsJson] = await Promise.all([songsResponse.json(), podcastsResponse.json()]);
   const songs = normalizeSongsFromItunes(songsJson.results || []);
+  const books = await fetchBooksDataSafe(searchTerm);
 
   if (!songs.length) {
     throw new Error("No songs returned from iTunes.");
@@ -800,6 +947,7 @@ async function fetchItunesData(searchTerm) {
     songs,
     artists: buildArtistsFromSongs(songs),
     albums: buildAlbumsFromSongs(songs),
+    books,
     podcasts: normalizePodcastsFromApi(podcastsJson.results || [])
   };
 }
@@ -893,21 +1041,24 @@ async function fetchArchiveData(searchTerm) {
   }
 
   const podcasts = await fetchPodcastsOnly(`${preset.label} music podcast`, preset.country);
+  const books = await fetchBooksDataSafe(searchTerm);
 
   return {
     songs,
     artists: buildArtistsFromSongs(songs),
     albums: buildAlbumsFromSongs(songs),
+    books,
     podcasts
   };
 }
 
 async function fetchLocalLibraryData() {
-  const [catalogResponse, artistsResponse, albumsResponse, podcastsResponse] = await Promise.all([
+  const [catalogResponse, artistsResponse, albumsResponse, podcastsResponse, booksResponse] = await Promise.all([
     fetch(LOCAL_LIBRARY_PATH, { cache: "no-store" }),
     fetch("songs/artists.json", { cache: "no-store" }).catch(() => null),
     fetch("songs/albums.json", { cache: "no-store" }).catch(() => null),
-    fetch("songs/podcasts.json", { cache: "no-store" }).catch(() => null)
+    fetch("songs/podcasts.json", { cache: "no-store" }).catch(() => null),
+    fetch(BOOKS_LIBRARY_PATH, { cache: "no-store" }).catch(() => null)
   ]);
 
   if (!catalogResponse.ok) {
@@ -932,6 +1083,19 @@ async function fetchLocalLibraryData() {
     const filePodcasts = Array.isArray(podcastsJson?.podcasts) ? podcastsJson.podcasts : [];
     if (!Array.isArray(raw.podcasts) || !raw.podcasts.length) {
       raw.podcasts = filePodcasts;
+    }
+  }
+
+  if (booksResponse?.ok) {
+    const booksJson = await booksResponse.json();
+    raw.books = Array.isArray(booksJson?.books) ? booksJson.books : [];
+  }
+
+  if (!Array.isArray(raw.books) || !raw.books.length) {
+    try {
+      raw.books = await fetchBooksDataSafe("");
+    } catch {
+      raw.books = [];
     }
   }
 
