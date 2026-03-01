@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-pq3oY2c13nLZTllT+zTL8CqvGjYH6G+j6lJzi10BGSAdoo6gWQBaIj++ImQxGc1dQc5sKXc5teLoNU0f4rOiUg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="auth-style.css" />
 </head>
-<body class="auth-body">
+<body class="auth-body" style="visibility:hidden;">
   <div class="auth-container">
     <div class="auth-card">
       <!-- Logo/Brand -->
@@ -142,5 +142,13 @@
   </div>
 
   <script src="auth-script.js"></script>
+  <script>
+    // if already logged in we redirect; keep body hidden until the check completes
+    document.addEventListener('DOMContentLoaded', function(){
+      // checkAuthStatus will redirect if needed
+      // reveal otherwise so form is visible
+      setTimeout(()=>{ document.body.style.visibility='visible'; }, 0);
+    });
+  </script>
 </body>
 </html>
