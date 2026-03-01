@@ -102,9 +102,7 @@ function renderArtistsPage(songs, rawArtists = []) {
       const key = name.toLowerCase();
       if (shown.has(key)) return; // already rendered from songs
 
-      const imageUrl = typeof normalizeLocalPath === "function"
-        ? normalizeLocalPath(a.image || a.photo || a.artwork || "")
-        : (a.image || "");
+      const imageUrl = window.LocalLibrary.normalizeLocalPath(a.image || a.photo || a.artwork || "");
 
       const lines = [];
       if (a.genre) lines.push(a.genre);

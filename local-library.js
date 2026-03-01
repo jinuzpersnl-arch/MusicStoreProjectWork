@@ -185,5 +185,6 @@ window.LocalLibrary = {
   groupByArtist,
   groupByAlbum,
   songsByArtist,
-  songsByAlbum
+  songsByAlbum,
+  normalizeLocalPath
 };
