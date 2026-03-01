@@ -108,10 +108,18 @@ const downloadTrimBtn = document.getElementById("downloadTrimBtn");
 const downloadCutBtn = document.getElementById("downloadCutBtn");
 const editorStatus = document.getElementById("editorStatus");
 const waveformCanvas = document.getElementById("waveformCanvas");
+const waveformAuxCanvasA = document.getElementById("waveformAuxCanvasA");
+const waveformAuxCanvasB = document.getElementById("waveformAuxCanvasB");
 const waveStartLabel = document.getElementById("waveStartLabel");
 const waveSelectionLabel = document.getElementById("waveSelectionLabel");
 const waveEndLabel = document.getElementById("waveEndLabel");
 const editorPanel = document.querySelector(".editor-panel");
+const editorPreviewImage = document.getElementById("editorPreviewImage");
+const editorPreviewTitle = document.getElementById("editorPreviewTitle");
+const editorTimecode = document.getElementById("editorTimecode");
+const noiseReductionBtn = document.getElementById("noiseReductionBtn");
+const autocorrectBtn = document.getElementById("autocorrectBtn");
+const bassBoostBtn = document.getElementById("bassBoostBtn");
 
 const appState = {
   sourceData: cloneData(fallbackData),
@@ -136,7 +144,24 @@ const editorState = {
   isPreviewing: false,
   busy: false,
   animationFrame: 0,
-  statusFlashTimer: null
+  statusFlashTimer: null,
+  currentTrack: null,
+  effects: {
+    noiseReduction: false,
+    autocorrect: false,
+    bassBoost: false
+  }
+};
+
+const effectsState = {
+  context: null,
+  source: null,
+  noiseFilter: null,
+  compressor: null,
+  bassFilter: null,
+  outputGain: null,
+  initialized: false,
+  failed: false
 };
 
 const LOCAL_LIBRARY_PATH = "songs/catalog.json";
@@ -304,6 +329,118 @@ function updateWaveLabels() {
   if (waveEndLabel) waveEndLabel.textContent = `End: ${formatSeconds(end)}`;
 }
 
+function updateEditorPreview() {
+  const track = editorState.currentTrack;
+  if (!track) {
+    if (editorPreviewTitle) editorPreviewTitle.textContent = "No track selected";
+    if (editorPreviewImage) editorPreviewImage.src = DEFAULT_IMAGES.song;
+    return;
+  }
+
+  if (editorPreviewTitle) {
+    editorPreviewTitle.textContent = `${track.title} - ${track.artist || track.host || "Unknown"}`;
+  }
+  if (editorPreviewImage) {
+    editorPreviewImage.src = track.image || DEFAULT_IMAGES.song;
+  }
+}
+
+function updateEditorTimecode() {
+  if (!editorTimecode) return;
+  const current = Number.isFinite(audioPlayer.currentTime) ? audioPlayer.currentTime : 0;
+  const total = Number.isFinite(audioPlayer.duration) && audioPlayer.duration > 0
+    ? audioPlayer.duration
+    : getActiveDuration();
+  const msCurrent = Math.floor((current % 1) * 1000).toString().padStart(3, "0");
+  const msTotal = Math.floor((Math.max(0, total) % 1) * 1000).toString().padStart(3, "0");
+  editorTimecode.textContent = `${formatSeconds(current)}.${msCurrent} / ${formatSeconds(total)}.${msTotal}`;
+}
+
+function updateEffectsUI() {
+  const map = [
+    [noiseReductionBtn, editorState.effects.noiseReduction],
+    [autocorrectBtn, editorState.effects.autocorrect],
+    [bassBoostBtn, editorState.effects.bassBoost]
+  ];
+  map.forEach(([button, active]) => {
+    if (!button) return;
+    button.setAttribute("aria-pressed", active ? "true" : "false");
+  });
+}
+
+async function ensureEffectsGraph() {
+  if (effectsState.initialized) return true;
+  if (effectsState.failed) return false;
+
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) throw new Error("WebAudio unsupported");
+
+    const context = new AudioCtx();
+    audioPlayer.crossOrigin = "anonymous";
+    const source = context.createMediaElementSource(audioPlayer);
+    const noiseFilter = context.createBiquadFilter();
+    noiseFilter.type = "highpass";
+    noiseFilter.frequency.value = 20;
+
+    const compressor = context.createDynamicsCompressor();
+    compressor.threshold.value = -50;
+    compressor.knee.value = 40;
+    compressor.ratio.value = 3;
+    compressor.attack.value = 0.003;
+    compressor.release.value = 0.25;
+
+    const bassFilter = context.createBiquadFilter();
+    bassFilter.type = "lowshelf";
+    bassFilter.frequency.value = 120;
+    bassFilter.gain.value = 0;
+
+    const outputGain = context.createGain();
+    outputGain.gain.value = 1;
+
+    source.connect(noiseFilter);
+    noiseFilter.connect(compressor);
+    compressor.connect(bassFilter);
+    bassFilter.connect(outputGain);
+    outputGain.connect(context.destination);
+
+    effectsState.context = context;
+    effectsState.source = source;
+    effectsState.noiseFilter = noiseFilter;
+    effectsState.compressor = compressor;
+    effectsState.bassFilter = bassFilter;
+    effectsState.outputGain = outputGain;
+    effectsState.initialized = true;
+    applyEffectsToGraph();
+    return true;
+  } catch {
+    effectsState.failed = true;
+    setEditorStatus("Effects unavailable for this source/browser.");
+    return false;
+  }
+}
+
+function applyEffectsToGraph() {
+  if (!effectsState.initialized) return;
+  effectsState.noiseFilter.frequency.value = editorState.effects.noiseReduction ? 150 : 20;
+  effectsState.compressor.ratio.value = editorState.effects.autocorrect ? 8 : 3;
+  effectsState.compressor.threshold.value = editorState.effects.autocorrect ? -28 : -50;
+  effectsState.bassFilter.gain.value = editorState.effects.bassBoost ? 9 : 0;
+}
+
+async function toggleEffect(effectName) {
+  const ok = await ensureEffectsGraph();
+  if (!ok) return;
+
+  if (effectsState.context?.state === "suspended") {
+    await effectsState.context.resume();
+  }
+
+  editorState.effects[effectName] = !editorState.effects[effectName];
+  applyEffectsToGraph();
+  updateEffectsUI();
+}
+
 function computeWavePeaks(audioBuffer, bins) {
   const channel = audioBuffer.getChannelData(0);
   const blockSize = Math.max(1, Math.floor(channel.length / bins));
@@ -321,6 +458,45 @@ function computeWavePeaks(audioBuffer, bins) {
   }
 
   return peaks;
+}
+
+function drawWaveformLane(canvas, peaks, options = {}) {
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  const cssWidth = Math.max(300, Math.floor(rect.width || 900));
+  const cssHeight = Math.max(32, Math.floor(rect.height || 44));
+  const pixelWidth = Math.floor(cssWidth * dpr);
+  const pixelHeight = Math.floor(cssHeight * dpr);
+  if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
+    canvas.width = pixelWidth;
+    canvas.height = pixelHeight;
+  }
+
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, cssWidth, cssHeight);
+  if (!peaks.length) return;
+
+  const duration = getActiveDuration() || 1;
+  const { start, end } = clampTrimRange(readTrimRange().start, readTrimRange().end, duration);
+  const startX = (start / duration) * cssWidth;
+  const endX = (end / duration) * cssWidth;
+  const barWidth = cssWidth / peaks.length;
+  const midY = cssHeight / 2;
+  const intensity = options.intensity ?? 0.8;
+
+  for (let i = 0; i < peaks.length; i += 1) {
+    const peak = peaks[i] * intensity;
+    const x = i * barWidth;
+    const h = Math.max(1.5, peak * (cssHeight - 6));
+    const y = midY - h / 2;
+    const selected = x >= startX && x <= endX;
+    ctx.fillStyle = selected ? "rgba(121, 242, 223, 0.72)" : "rgba(123, 152, 160, 0.52)";
+    ctx.fillRect(x, y, Math.max(1, barWidth - 1), h);
+  }
 }
 
 function drawWaveform() {
@@ -356,6 +532,8 @@ function drawWaveform() {
     ctx.fillStyle = "rgba(191, 211, 216, 0.8)";
     ctx.font = "12px Manrope, sans-serif";
     ctx.fillText("Waveform loads when track is ready.", 12, midY + 4);
+    drawWaveformLane(waveformAuxCanvasA, []);
+    drawWaveformLane(waveformAuxCanvasB, []);
     return;
   }
 
@@ -404,6 +582,16 @@ function drawWaveform() {
   ctx.arc(startX, 10, 4, 0, Math.PI * 2);
   ctx.arc(endX, 10, 4, 0, Math.PI * 2);
   ctx.fill();
+
+  if (editorState.peaks.length) {
+    const auxA = editorState.peaks.map((peak, i) => (i % 2 ? peak * 0.76 : peak * 0.52));
+    const auxB = editorState.peaks.map((peak, i) => (i % 3 ? peak * 0.64 : peak * 0.9));
+    drawWaveformLane(waveformAuxCanvasA, auxA, { intensity: 0.9 });
+    drawWaveformLane(waveformAuxCanvasB, auxB, { intensity: 0.75 });
+  } else {
+    drawWaveformLane(waveformAuxCanvasA, []);
+    drawWaveformLane(waveformAuxCanvasB, []);
+  }
 }
 
 function handleWavePointer(clientX) {
@@ -1690,8 +1878,11 @@ function playTrackByIndex(index) {
   editorState.audioBuffer = null;
   editorState.peaks = [];
   editorState.isPreviewing = false;
+  editorState.currentTrack = track;
   if (trimStartInput) trimStartInput.value = "0";
   if (trimEndInput) trimEndInput.value = String(parseDurationToSeconds(track.duration || "0:00") || 0);
+  updateEditorPreview();
+  updateEditorTimecode();
   updateWaveLabels();
   drawWaveform();
   setEditorStatus("Track ready. Set start/end and use Trim/Cut.");
@@ -1859,12 +2050,14 @@ audioPlayer.addEventListener("loadedmetadata", () => {
       trimEndInput.value = String(audioPlayer.duration.toFixed(1));
     }
   }
+  updateEditorTimecode();
   updateWaveLabels();
   drawWaveform();
 });
 
 audioPlayer.addEventListener("timeupdate", () => {
   currentTimeEl.textContent = formatSeconds(audioPlayer.currentTime);
+  updateEditorTimecode();
 
   if (!audioPlayer.duration) return;
   progressBar.value = (audioPlayer.currentTime / audioPlayer.duration) * 100;
@@ -1886,6 +2079,7 @@ audioPlayer.addEventListener("play", () => {
 
 audioPlayer.addEventListener("pause", () => {
   document.body.classList.remove("is-playing");
+  updateEditorTimecode();
 });
 
 progressBar.addEventListener("input", () => {
@@ -1927,6 +2121,18 @@ downloadCutBtn?.addEventListener("click", () => {
   downloadEditedAudio("cut", downloadCutBtn);
 });
 
+noiseReductionBtn?.addEventListener("click", () => {
+  toggleEffect("noiseReduction");
+});
+
+autocorrectBtn?.addEventListener("click", () => {
+  toggleEffect("autocorrect");
+});
+
+bassBoostBtn?.addEventListener("click", () => {
+  toggleEffect("bassBoost");
+});
+
 window.addEventListener("resize", () => {
   drawWaveform();
 });
@@ -1944,6 +2150,9 @@ navLinks.addEventListener("click", (event) => {
 });
 
 bindWaveformInteractions();
+updateEditorPreview();
+updateEditorTimecode();
+updateEffectsUI();
 updateWaveLabels();
 drawWaveform();
 startWaveformAnimator();
