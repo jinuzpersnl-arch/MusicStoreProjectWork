@@ -639,6 +639,29 @@ body {
   font-weight: 700;
 }
 
+.waveform-wrap {
+  margin-top: 0.5rem;
+}
+
+#waveformCanvas {
+  width: 100%;
+  height: 120px;
+  border: 1px solid #6f97a255;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #102027e6, #0d1c22e6);
+  display: block;
+  touch-action: none;
+}
+
+.waveform-labels {
+  margin-top: 0.35rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.4rem;
+  color: #bcd2d7;
+  font-size: 0.72rem;
+}
+
 .editor-grid {
   margin-top: 0.42rem;
   display: grid;
