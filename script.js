@@ -122,6 +122,12 @@ const editorTimecode = document.getElementById("editorTimecode");
 const noiseReductionBtn = document.getElementById("noiseReductionBtn");
 const autocorrectBtn = document.getElementById("autocorrectBtn");
 const bassBoostBtn = document.getElementById("bassBoostBtn");
+const PAGE_TYPE = document.body?.dataset?.page || "home";
+const IS_HOME_PAGE = PAGE_TYPE === "home";
+const IS_PLAYER_PAGE = PAGE_TYPE === "player";
+const PLAYER_REQUEST_KEY = "musicStorePendingTrackRequest";
+const URL_PARAMS = new URLSearchParams(window.location.search);
+const SHOULD_OPEN_EDITOR = URL_PARAMS.get("mode") === "edit";
 
 const appState = {
   sourceData: cloneData(fallbackData),
@@ -133,7 +139,9 @@ const appState = {
   selectedSource: "local",
   preferredQuality: "any",
   preferredFormat: "any",
-  minDurationMinutes: 1
+  minDurationMinutes: 1,
+  pendingTrackRequest: null,
+  autoPlayHandled: false
 };
 
 const editorState = {
@@ -204,6 +212,14 @@ const FORMAT_GROUPS = {
   wav: ["WAVE"]
 };
 
+appState.pendingTrackRequest = loadPendingTrackRequest();
+if (IS_PLAYER_PAGE && appState.pendingTrackRequest?.source) {
+  appState.selectedSource = appState.pendingTrackRequest.source;
+}
+if (IS_PLAYER_PAGE && appState.pendingTrackRequest?.language && LANGUAGE_PRESETS[appState.pendingTrackRequest.language]) {
+  appState.selectedLanguage = appState.pendingTrackRequest.language;
+}
+
 function cloneData(data) {
   return JSON.parse(JSON.stringify(data));
 }
@@ -246,6 +262,136 @@ function parseDurationToSeconds(durationText) {
   if (parts.length === 2) return parts[0] * 60 + parts[1];
   if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
   return 0;
+}
+
+function parseTrackRequestFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("autoplay") !== "1") return null;
+  const type = params.get("type");
+  const id = params.get("id");
+  if (!type || !id) return null;
+  return {
+    type,
+    id,
+    source: params.get("source") || "",
+    language: params.get("lang") || ""
+  };
+}
+
+function loadPendingTrackRequest() {
+  const fromUrl = parseTrackRequestFromUrl();
+  if (fromUrl) return fromUrl;
+
+  try {
+    const raw = sessionStorage.getItem(PLAYER_REQUEST_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed?.type || !parsed?.id) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function savePendingTrackRequest(request) {
+  try {
+    sessionStorage.setItem(PLAYER_REQUEST_KEY, JSON.stringify(request));
+  } catch {
+    // Ignore storage failures in private/restricted contexts.
+  }
+}
+
+function clearPendingTrackRequest() {
+  try {
+    sessionStorage.removeItem(PLAYER_REQUEST_KEY);
+  } catch {
+    // Ignore storage failures in private/restricted contexts.
+  }
+}
+
+function buildPlayerRedirectUrl(type, id) {
+  const params = new URLSearchParams({
+    autoplay: "1",
+    type: String(type),
+    id: String(id),
+    source: String(appState.selectedSource || ""),
+    lang: String(appState.selectedLanguage || "")
+  });
+  return `player.html?${params.toString()}`;
+}
+
+function buildEditorTabUrl(type = "", id = "") {
+  const params = new URLSearchParams({
+    source: String(appState.selectedSource || ""),
+    lang: String(appState.selectedLanguage || ""),
+    mode: "edit"
+  });
+  if (type && id) {
+    params.set("autoplay", "1");
+    params.set("type", String(type));
+    params.set("id", String(id));
+  }
+  return `player.html?${params.toString()}`;
+}
+
+function openEditorInNewTab(type, id) {
+  const request = {
+    type: String(type),
+    id: String(id),
+    source: String(appState.selectedSource || ""),
+    language: String(appState.selectedLanguage || "")
+  };
+  savePendingTrackRequest(request);
+  window.open(buildEditorTabUrl(type, id), "_blank", "noopener");
+}
+
+function openStandaloneEditorFromCurrentContext() {
+  let type = "";
+  let id = "";
+  if (appState.currentTrackIndex > -1 && appState.currentTrackIndex < appState.playableQueue.length) {
+    const track = appState.playableQueue[appState.currentTrackIndex];
+    type = String(track.type || "");
+    id = String(track.id || "");
+  }
+  window.open(buildEditorTabUrl(type, id), "_blank", "noopener");
+}
+
+function redirectToPlayer(type, id) {
+  const request = {
+    type: String(type),
+    id: String(id),
+    source: String(appState.selectedSource || ""),
+    language: String(appState.selectedLanguage || "")
+  };
+  savePendingTrackRequest(request);
+  window.location.href = buildPlayerRedirectUrl(type, id);
+}
+
+function tryAutoPlayPendingTrack() {
+  if (!IS_PLAYER_PAGE || appState.autoPlayHandled) return;
+  const pending = appState.pendingTrackRequest;
+  if (!pending?.type || !pending?.id) {
+    appState.autoPlayHandled = true;
+    return;
+  }
+
+  const index = appState.playableQueue.findIndex(
+    (track) => track.type === pending.type && String(track.id) === String(pending.id)
+  );
+  if (index === -1) return;
+
+  appState.autoPlayHandled = true;
+  appState.pendingTrackRequest = null;
+  clearPendingTrackRequest();
+  if (window.location.search.includes("autoplay=1")) {
+    const cleanUrl = `${window.location.pathname}${window.location.hash}`;
+    window.history.replaceState({}, "", cleanUrl);
+  }
+  playTrackByIndex(index);
+  if (SHOULD_OPEN_EDITOR) {
+    setEditorCollapsed(false);
+    editorPanel?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 }
 
 function setStatus(message) {
@@ -951,6 +1097,7 @@ function applyPreferencesAndRender(searchTerm) {
   appState.musicData = applySongPreferences(appState.sourceData);
   rebuildPlayableQueue();
   filterAndRender(searchTerm);
+  tryAutoPlayPendingTrack();
 }
 
 function rebuildPlayableQueue() {
@@ -1011,7 +1158,10 @@ function renderSongs(songs) {
         <p>Album: ${escapeHtml(song.album)}</p>
         <p>Duration: ${escapeHtml(song.duration)}</p>
         <p>Formats: ${escapeHtml((song.downloads || []).map((d) => d.format).join(", ") || "Unknown")}</p>
-        <button data-type="Song" data-id="${song.id}">Play</button>
+        <div class="card-actions">
+          <button data-type="Song" data-id="${song.id}">Play</button>
+          <button class="card-edit-btn" data-action="edit-track" data-type="Song" data-id="${song.id}">Edit</button>
+        </div>
         ${renderDownloadList(song)}
       </article>
     `
@@ -1848,12 +1998,17 @@ async function downloadEditedAudio(mode, button = null) {
       ? buildCutBlob(audioBuffer, start, end)
       : buildTrimBlob(audioBuffer, start, end);
     const fileName = mode === "cut" ? "edited-cut.wav" : "edited-trim.wav";
-    triggerBlobDownload(blob, fileName);
-    setEditorStatus(
+    const shouldDownload = window.confirm(
       mode === "cut"
-        ? `Downloaded cut version (removed ${formatSeconds(start)} to ${formatSeconds(end)}).`
-        : `Downloaded trim version (${formatSeconds(start)} to ${formatSeconds(end)}).`
+        ? `Cut is ready (${formatSeconds(start)} to ${formatSeconds(end)} removed). Download now?`
+        : `Trim is ready (${formatSeconds(start)} to ${formatSeconds(end)}). Download now?`
     );
+    if (shouldDownload) {
+      triggerBlobDownload(blob, fileName);
+      setEditorStatus(mode === "cut" ? "Cut exported and downloaded." : "Trim exported and downloaded.");
+    } else {
+      setEditorStatus("Export ready. Download canceled.");
+    }
   } catch (error) {
     setEditorStatus(error?.message || "Audio export failed.");
   } finally {
@@ -2022,8 +2177,23 @@ document.body.addEventListener("click", (event) => {
   const target = event.target;
   if (!(target instanceof HTMLElement)) return;
 
+  if (target.matches(".card button[data-action='edit-track']")) {
+    const type = target.dataset.type;
+    const id = target.dataset.id;
+    if (!type || !id) return;
+    openEditorInNewTab(type, id);
+    return;
+  }
+
   if (target.matches(".card button[data-type]")) {
-    playTrackFromButton(target.dataset.type, target.dataset.id);
+    const type = target.dataset.type;
+    const id = target.dataset.id;
+    if (!type || !id) return;
+    if (IS_HOME_PAGE && type === "Song") {
+      redirectToPlayer(type, id);
+      return;
+    }
+    playTrackFromButton(type, id);
   }
 });
 
@@ -2145,6 +2315,10 @@ bassBoostBtn?.addEventListener("click", () => {
 });
 
 toggleEditorBtn?.addEventListener("click", () => {
+  if (IS_HOME_PAGE) {
+    openStandaloneEditorFromCurrentContext();
+    return;
+  }
   const collapsed = playerPanel?.classList.contains("editor-collapsed");
   setEditorCollapsed(!collapsed);
 });
@@ -2172,6 +2346,6 @@ updateEffectsUI();
 updateWaveLabels();
 drawWaveform();
 startWaveformAnimator();
-setEditorCollapsed(true);
+setEditorCollapsed(IS_PLAYER_PAGE && SHOULD_OPEN_EDITOR ? false : true);
 
 initializeData();
