@@ -17,9 +17,13 @@
   <!-- anime.js for advanced animations -->
   <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
   <link rel="stylesheet" href="style.css?v=20260301b" />
+  <style>body{visibility:hidden;}</style>
   <!-- require login for player page -->
   <script src="auth-script.js"></script>
-  <script>ensureAuthenticated();</script>
+  <script>
+    ensureAuthenticated();
+    document.addEventListener('DOMContentLoaded', function(){ document.body.style.visibility='visible'; });
+  </script>
 </head>
 <body data-page="player">
   <div class="ambient" aria-hidden="true"></div>

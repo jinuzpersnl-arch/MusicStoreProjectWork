@@ -17,6 +17,7 @@
   <!-- anime.js for advanced animations -->
   <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
   <link rel="stylesheet" href="style.css?v=20260301f" />
+  <style>body{visibility:hidden;}</style>
 </head>
 <body data-page="home">
   <!-- Authentication Setup -->
@@ -24,6 +25,8 @@
   <script>
     // ensure user is logged in before rendering
     ensureAuthenticated();
+    // reveal once DOM ready (won't run if redirected)
+    document.addEventListener('DOMContentLoaded', function(){ document.body.style.visibility='visible'; });
   </script>
   
   <div class="ambient" aria-hidden="true"></div>

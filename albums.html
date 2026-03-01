@@ -11,9 +11,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="library-pages.css?v=20260301b" />
+  <style>body{visibility:hidden;}</style>
   <!-- enforce login before showing albums -->
   <script src="auth-script.js"></script>
-  <script>ensureAuthenticated();</script>
+  <script>
+    ensureAuthenticated();
+    document.addEventListener('DOMContentLoaded', function(){ document.body.style.visibility='visible'; });
+  </script>
 </head>
 <body data-page="albums">
   <main class="page">
